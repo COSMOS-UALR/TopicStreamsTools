@@ -1,0 +1,6 @@
+gensim
+nltk
+pandas
+openpyxl
+matplotlib
+tqdm

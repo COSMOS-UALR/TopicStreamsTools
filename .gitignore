@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.vscode/
+Data/
+Output/
+processed_data/
+models/
+
 # C extensions
 *.so
 
