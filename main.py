@@ -13,12 +13,14 @@ def main():
         'filePath': 'KnownMisinfo.xlsx - Table1.csv',
         'corpusFieldName': 'title',
         'idFieldName': 'debunking_date',
-        'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-        'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+        # Advanced settings
         'numberTopics': 20,
         'numberWords': 10,
         'moving_avg_window_size': 20,
+        'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+        'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
         'minimumProbability': 0.00000001,
+        'nbFigures': 5,
     }
 
     # settings = {
@@ -28,12 +30,13 @@ def main():
     #     'idFieldName': 'date',
     #     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     #     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    #     'start_date': "2015-01-01",          # Optional - will train the model on whole corpus but only select items from this date when creating the topic distribution matrix
-    #     'end_date': "2016-01-01",            # Optional - will train the model on whole corpus but only select items up to this date when creating the topic distribution matrix
+    #     'start_date': "2015-01-01",         # Optional - will only select items from this date when creating the topic distribution matrix
+    #     'end_date': "2016-01-01",           # Optional - will only select items up to this date when creating the topic distribution matrix
     #     'numberTopics': 50,
     #     'numberWords': 10,
     #     'moving_avg_window_size': 50,
     #     'minimumProbability': 0.00000001,
+    #     'nbFigures': 5,
     # }
 
     print('Attempting to load Dataframes...')
@@ -47,6 +50,6 @@ def main():
 
     save_to_excel(settings, distributionDF, wordsDF)
 
-    save_figures(settings, distributionDF, wordsDF, n=5)
+    save_figures(settings, distributionDF, wordsDF, n=settings['nbFigures'])
 
 main()
