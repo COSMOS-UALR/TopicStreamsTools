@@ -5,39 +5,11 @@ import os
 from src.IO import load_df, save_to_excel, save_figures, DISTRIB_FILE, WORDS_FILE
 from src.model import get_model
 from src.matrix import createMatrix
+from settings import *
 
-def main():
+settings = comments_settings
 
-    settings = {
-        'datasetName': 'COVID',
-        'filePath': 'KnownMisinfo.xlsx - Table1.csv',
-        'corpusFieldName': 'title',
-        'idFieldName': 'debunking_date',
-        # Advanced settings
-        'numberTopics': 20,
-        'numberWords': 10,
-        'moving_avg_window_size': 20,
-        'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-        'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-        'minimumProbability': 0.00000001,
-        'nbFigures': 5,
-    }
-
-    # settings = {
-    #     'datasetName': 'MURI',
-    #     'filePath': 'MURI blog data.json',
-    #     'corpusFieldName': 'post',
-    #     'idFieldName': 'date',
-    #     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-    #     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    #     'start_date': "2015-01-01",         # Optional - will only select items from this date when creating the topic distribution matrix
-    #     'end_date': "2016-01-01",           # Optional - will only select items up to this date when creating the topic distribution matrix
-    #     'numberTopics': 50,
-    #     'numberWords': 10,
-    #     'moving_avg_window_size': 50,
-    #     'minimumProbability': 0.00000001,
-    #     'nbFigures': 5,
-    # }
+def main(settings):
 
     print('Attempting to load Dataframes...')
     distributionDF = load_df(settings['datasetName'], DISTRIB_FILE)
@@ -52,4 +24,4 @@ def main():
 
     save_figures(settings, distributionDF, wordsDF, n=settings['nbFigures'])
 
-main()
+main(settings)

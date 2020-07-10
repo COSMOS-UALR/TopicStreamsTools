@@ -86,3 +86,6 @@ Topics with a probability lower than this threshold will be filtered out.
 
 13. nbFigures
 Number of figures generated to the output folder. Keep this number under the number of topics.
+
+14. lang
+Optional tuple where the first item is the name of the language column/attribute and the second is the language.

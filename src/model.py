@@ -49,7 +49,7 @@ def processData(ids, raw_corpus, datasetName):
         save_tmp(datasetName, ID_FILE, ids)
         return bow_corpus, dictionary, ids
 
-def read_data(dataFile, corpusFieldName, idFieldName):
+def read_data(settings, dataFile, corpusFieldName, idFieldName):
     data_type = Path(dataFile).suffix
     df = None
     ids = None
@@ -57,7 +57,9 @@ def read_data(dataFile, corpusFieldName, idFieldName):
         with open(dataFile, encoding="UTF-8") as f:
             dataObject = json.load(f, strict=False)
             df = pd.DataFrame(dataObject)
-            df = df[df['language'] == "English"]
+            if 'lang' in settings:
+                print(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
+                df = df[df[settings['lang'][0]] == settings['lang'][1]]
     elif data_type == '.csv':
         df = pd.read_csv(dataFile, na_filter=False)
         ids = df[idFieldName]
@@ -85,7 +87,7 @@ def create_model(settings):
             print("Failure to find processed data. Reloading corpus.")
         print("Processing model and corpus...")
         dataFile = os.path.join(os.getcwd(), 'Data', settings['filePath'])
-        raw_corpus, ids = read_data(dataFile, settings['corpusFieldName'], settings['idFieldName'])
+        raw_corpus, ids = read_data(settings, dataFile, settings['corpusFieldName'], settings['idFieldName'])
         bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
 
     print("Training model. This may take several minutes depending on the size of the corpus.")
@@ -102,4 +104,6 @@ def get_model(settings):
         model, bow_corpus, ids = loadFiles(settings['datasetName'])
         if model is None or bow_corpus is None or ids is None:
             print("Failed to load files - recreating model")
-            return create_model(settings)    
+            return create_model(settings)
+        else:
+            return model, bow_corpus, ids

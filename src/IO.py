@@ -88,9 +88,9 @@ def loadData(datasetName):
 ### OUTPUT ###
 
 def save_to_output(settings):
-    output_dir = os.path.join('Output', settings['datasetName'])
-    if not os.path.exists(os.path.dirname(output_dir)):
-        os.makedirs(os.path.dirname(output_dir))
+    output_dir = os.path.join(os.getcwd(), 'Output', settings['datasetName'])
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
     return output_dir
 
 ### EXCEL ###
@@ -98,7 +98,7 @@ def save_to_output(settings):
 def save_to_excel(settings, distributionDF, wordsDF):
     fileName = 'TopicDistribution.xlsx'
     output_dir = save_to_output(settings)
-    output_dest = output_dir + fileName
+    output_dest = os.path.join(output_dir, fileName)
     with pd.ExcelWriter(output_dest) as writer:
         wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
         distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
