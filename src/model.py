@@ -84,7 +84,7 @@ def create_model(settings):
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
         print("Processing model and corpus...")
-        dataFile = os.getcwd() + '\\Data\\' + settings['filePath']
+        dataFile = os.path.join(os.getcwd(), 'Data', settings['filePath'])
         raw_corpus, ids = read_data(dataFile, settings['corpusFieldName'], settings['idFieldName'])
         bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
 

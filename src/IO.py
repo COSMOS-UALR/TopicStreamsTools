@@ -6,7 +6,7 @@ import pandas as pd
 
 ## GLOBALS ###
 
-PROCESSED_DATA_FOLDER = "processed_data\\"
+PROCESSED_DATA_FOLDER = "processed_data"
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
 ID_FILE = 'ids.obj'
@@ -31,23 +31,23 @@ def load_file(file_path):
 ### TEMP FILES ###
 
 def save_tmp(datasetName, suffix, content):
-    destination = PROCESSED_DATA_FOLDER + datasetName + '_' + suffix
+    destination = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + suffix)
     save_file(destination, content)
 
 def load_tmp(datasetName, suffix):
-    source = PROCESSED_DATA_FOLDER + datasetName + '_' + suffix
+    source = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + suffix)
     return load_file(source)
 
 ### DATAFRAMES ###
 
 def save_df(datasetName, file, df):
-    file_path = PROCESSED_DATA_FOLDER + datasetName + '_' + file
+    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + file)
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
     df.to_pickle(file_path)
 
 def load_df(datasetName, file):
-    file_path = PROCESSED_DATA_FOLDER + datasetName + '_' + file
+    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + file)
     if not os.path.isfile(file_path):
         print(f"{file_path} not found.")
         return None
@@ -56,7 +56,7 @@ def load_df(datasetName, file):
 ### MODELS ###
 
 def getModelLocation(datasetName):
-    return os.getcwd() + '\\models\\' + datasetName + '\\LDAmodel'
+    return os.path.join(os.getcwd(), 'models', datasetName, 'LDAmodel')
 
 def save_model(datasetName, model):
     destination = getModelLocation(datasetName)
@@ -88,7 +88,7 @@ def loadData(datasetName):
 ### OUTPUT ###
 
 def save_to_output(settings):
-    output_dir = 'Output\\' + settings['datasetName'] + '\\'
+    output_dir = os.path.join('Output', settings['datasetName'])
     if not os.path.exists(os.path.dirname(output_dir)):
         os.makedirs(os.path.dirname(output_dir))
     return output_dir
@@ -122,6 +122,6 @@ def save_figures(settings, topics_df, words_df, n=5):
         df = df.rolling(settings['moving_avg_window_size']).mean()
         plot = df.plot(color=getColor())
         fig = plot.get_figure()
-        fig.savefig(f"{output_dir}\\Topic_{topic}.png")
+        fig.savefig(os.path.join(output_dir, f'Topic_{topic}.png'))
         fig.clf()
     print(f"Finished plotting figures to {output_dir}.")
