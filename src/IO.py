@@ -1,7 +1,7 @@
 from gensim import models
+from tqdm import tqdm
 
 import pickle, os, random
-
 import pandas as pd
 
 ## GLOBALS ###
@@ -96,6 +96,7 @@ def save_to_output(settings):
 ### EXCEL ###
 
 def save_to_excel(settings, distributionDF, wordsDF):
+    print("Writing to excel. This may take a few minutes for larger corpora.")
     fileName = 'TopicDistribution.xlsx'
     output_dir = save_to_output(settings)
     output_dest = os.path.join(output_dir, fileName)
@@ -116,7 +117,8 @@ def save_figures(settings, topics_df, words_df, n=5):
     selected_topics = words_df.head(n).index.values.tolist()
     dft = topics_df.transpose()
     output_dir = save_to_output(settings)
-    for topic in selected_topics:
+    print("Plotting figures...")
+    for topic in tqdm(selected_topics):
         df = dft.loc[topic]
         # Smooth curve
         df = df.rolling(settings['moving_avg_window_size']).mean()

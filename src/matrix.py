@@ -6,6 +6,7 @@ import os
 import math
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from .IO import save_df, DISTRIB_FILE, WORDS_FILE
 
@@ -27,7 +28,7 @@ def get_dominant_topics_counts_and_distribution(doc_topics):
     # Topic counts start at 0 depending on num topics (or rows) in document-topic matrix.
     dominant_topic_counts = np.zeros(len(doc_topics[0]))
 
-    for topic_dist in doc_topics:
+    for topic_dist in tqdm(doc_topics):
 
         # order the topic indices from largest to smallest probability. Without the -1, would get smallest to largest.
         sorted_topic_indices = np.argsort(-1 * topic_dist)
@@ -72,7 +73,7 @@ def print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dis
 def get_doc_topic_distributions(model, corpus):
    topic_distributions = []
    #FILTER BY DATES HERE
-   for i, doc in enumerate(corpus):
+   for i, doc in enumerate(tqdm(corpus)):
        doc_dist = model[doc]
        doc_distribution = np.zeros(len(doc_dist), dtype='float64')
        for (topic, val) in doc_dist:
@@ -101,13 +102,14 @@ def createMatrix(settings, model, bow_corpus, ids):
         topics.append(topic_set[0])
 
     # Output Topic Distribution and Topic Words
+    print("Generate topic distribution data")
     distribution = get_doc_topic_distributions(model, bow_corpus)
+    print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
     df1 = pd.DataFrame(distribution, index=ids, columns=topics)
-
-    topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
     topic_data = []
+    topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
     for topic, words_list in topics_words:
         topic_data.append(words_list + [dominant_topic_counts[topic]] + [np.around(dominant_topic_dist[topic], 4)])
     headers = [f"Word {i}" for i in range(0,len(words_list))] + ["Topic Count", "Distribution"]
