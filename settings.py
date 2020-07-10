@@ -1,8 +1,8 @@
 comments_settings = {
     'datasetName': 'comments',
     'filePath': 'VideoCommentsWithChannelandCategoryJan1-April302020.json',
-    'corpusFieldName': 'comments_displayed',
-    'idFieldName': 'date',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
     'reloadData': True,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'numberTopics': 10,
