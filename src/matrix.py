@@ -117,7 +117,7 @@ def createMatrix(settings, model, bow_corpus, ids):
 
     # Sort words by descending topic count
     df2 = df2.sort_values("Topic Count", ascending=False)
-    save_df(settings['datasetName'], DISTRIB_FILE, df)
+    save_df(settings['datasetName'], DISTRIB_FILE, df1)
     save_df(settings['datasetName'], WORDS_FILE, df2)
 
     return df1, df2
