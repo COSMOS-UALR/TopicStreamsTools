@@ -3,19 +3,37 @@ comments_settings = {
     'filePath': 'VideoCommentsWithChannelandCategoryJan1-April302020.json',
     'corpusFieldName': 'comment_displayed',
     'idFieldName': 'published_date',
-    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'numberTopics': 10,
     'numberWords': 10,
-    'moving_avg_window_size': 50,
+    'moving_avg_window_size': 200,
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
 }
 
+DOD_AUS_settings = {
+    'datasetName': 'DOD_AUSI',
+    'filePath': 'DOD_AUSI_JSON.json',
+    'corpusFieldName': 'content',
+    'idFieldName': 'published_date',
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+    'topicGroups': [[2, 3]],
+}
+
 covid_settings = {
-    'datasetName': 'COVID',
-    'filePath': 'KnownMisinfo.xlsx - Table1.csv',
+    'datasetName': 'test',
+    # 'datasetName': 'COVID_themes',
+    'filePath': 'covid.csv',
     'corpusFieldName': 'title',
+    # 'corpusFieldName': 'THEME',
     'idFieldName': 'debunking_date',
     # Advanced settings
     'numberTopics': 20,
@@ -24,7 +42,9 @@ covid_settings = {
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
-    'nbFigures': 5,
+    'nbFigures': 10,
+    # 'topicGroups': [[10,12,17,18]],
+    'topicGroups': [[3,9,16]],
 }
 
 muri_settings = {

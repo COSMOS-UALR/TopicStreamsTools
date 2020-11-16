@@ -97,7 +97,7 @@ def save_to_output(settings):
 
 def save_to_excel(settings, distributionDF, wordsDF):
     print("Writing to excel. This may take a few minutes for larger corpora.")
-    fileName = 'TopicDistribution.xlsx'
+    fileName = f"TopicDistribution_{settings['datasetName']}.xlsx"
     output_dir = save_to_output(settings)
     output_dest = os.path.join(output_dir, fileName)
     with pd.ExcelWriter(output_dest) as writer:
@@ -119,11 +119,24 @@ def save_figures(settings, topics_df, words_df, n=5):
     output_dir = save_to_output(settings)
     print("Plotting figures...")
     for topic in tqdm(selected_topics):
-        df = dft.loc[topic]
+        df = dft.iloc[topic]
         # Smooth curve
         df = df.rolling(settings['moving_avg_window_size']).mean()
         plot = df.plot(color=getColor())
         fig = plot.get_figure()
         fig.savefig(os.path.join(output_dir, f'Topic_{topic}.png'))
         fig.clf()
+    # Multiple topics
+    if 'topicGroups' in settings:
+        topic_groups = settings['topicGroups']
+        for topic_group in topic_groups:
+            for topic in tqdm(topic_group):
+                df = dft.iloc[topic]
+                # Smooth curve
+                df = df.rolling(settings['moving_avg_window_size']).mean()
+                plot = df.plot(color=getColor())
+            fig = plot.get_figure()
+            fig.savefig(os.path.join(output_dir, f'Topics_{"-".join(str(x) for x in topic_group)}.png'))
+            fig.clf()
+
     print(f"Finished plotting figures to {output_dir}.")

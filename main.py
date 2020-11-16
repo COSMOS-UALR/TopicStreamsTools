@@ -7,7 +7,7 @@ from src.model import get_model
 from src.matrix import createMatrix
 from settings import *
 
-settings = comments_settings
+settings = DOD_AUS_settings
 
 def main(settings):
 
@@ -20,8 +20,8 @@ def main(settings):
         print('Calculating Dataframes...')
         distributionDF, wordsDF = createMatrix(settings, model, bow_corpus, ids)
 
-    save_to_excel(settings, distributionDF, wordsDF)
-
+    # save_to_excel(settings, distributionDF, wordsDF)
+    
     save_figures(settings, distributionDF, wordsDF, n=settings['nbFigures'])
 
 main(settings)

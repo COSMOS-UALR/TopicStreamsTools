@@ -22,6 +22,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'end_date': "2020-03-01",          # Optional - will only select items up to this date when creating the topic distribution matrix
         'minimumProbability': 0.00000001,
         'nbFigures': 5,
+        'topicGroups': [[2, 3]],
     }
 ```
 
@@ -89,3 +90,6 @@ Number of figures generated to the output folder. Keep this number under the num
 
 14. lang
 Optional tuple where the first item is the name of the language column/attribute and the second is the language.
+
+15. topicGroups
+Optional list of topics to print on one graph. First run on your dataset then check what resulting figures you would like to group up.

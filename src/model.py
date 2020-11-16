@@ -61,7 +61,7 @@ def read_data(settings, dataFile, corpusFieldName, idFieldName):
                 print(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
                 df = df[df[settings['lang'][0]] == settings['lang'][1]]
     elif data_type == '.csv':
-        df = pd.read_csv(dataFile, na_filter=False)
+        df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['idFieldName']])
         ids = df[idFieldName]
     else:
         raise Exception
