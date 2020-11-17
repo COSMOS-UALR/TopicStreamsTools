@@ -1,6 +1,7 @@
 # TopicStreamsTools
 
-This tool provides a quick way to generate topic streams for a given corpus. JSON and CSV files are accepted.
+This tool provides a quick way to generate topic streams for a given corpus.
+JSON and CSV files are accepted. HOWEVER, you should use JSON to avoid the ambiguous separator problem on large text fields. If the script is failing with a CSV file try with a JSON version.
 
 ![Settings](/images/topicStreamExample.png)
 
