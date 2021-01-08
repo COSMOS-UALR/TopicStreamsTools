@@ -49,22 +49,34 @@ def processData(ids, raw_corpus, datasetName):
         save_tmp(datasetName, ID_FILE, ids)
         return bow_corpus, dictionary, ids
 
-def read_data(settings, dataFile, corpusFieldName, idFieldName):
+def read_file(settings, dataFile):
     data_type = Path(dataFile).suffix
-    df = None
-    ids = None
+    encoding = settings['encoding'] if 'encoding' in settings else 'utf-8'
     if data_type == '.json':
-        with open(dataFile, encoding="UTF-8") as f:
-            dataObject = json.load(f, strict=False)
-            df = pd.DataFrame(dataObject)
-            if 'lang' in settings:
-                print(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
-                df = df[df[settings['lang'][0]] == settings['lang'][1]]
+        json_orientation = settings['json_orientation'] if 'json_orientation' in settings else None
+        df = pd.read_json(dataFile, orient=json_orientation, encoding=encoding)
     elif data_type == '.csv':
         df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['idFieldName']])
-        ids = df[idFieldName]
     else:
         raise Exception
+    return df
+
+def read_data(settings, dataSource, corpusFieldName, idFieldName):
+    df = None
+    ids = None
+    if os.path.isdir(dataSource):
+        for filename in os.listdir(dataSource):
+            file_df = read_file(settings, os.path.join(dataSource, filename))
+            print(f"Loading {file_df.shape[0]} items from {filename}.")
+            if df is None:
+                df = file_df
+            else:
+                df = df.append(file_df)
+    else:
+        df = read_file(settings, dataSource)
+    if 'lang' in settings:
+        print(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
+        df = df[df[settings['lang'][0]] == settings['lang'][1]]
     print(f"Loaded {df.shape[0]} items.")
     print("Dataset preview:")
     print(df.head())
@@ -86,8 +98,8 @@ def create_model(settings):
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
         print("Processing model and corpus...")
-        dataFile = os.path.join(os.getcwd(), 'Data', settings['filePath'])
-        raw_corpus, ids = read_data(settings, dataFile, settings['corpusFieldName'], settings['idFieldName'])
+        dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
+        raw_corpus, ids = read_data(settings, dataSource, settings['corpusFieldName'], settings['idFieldName'])
         bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
 
     print("Training model. This may take several minutes depending on the size of the corpus.")

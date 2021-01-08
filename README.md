@@ -10,9 +10,11 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
 ```python
     settings = {
         'datasetName': 'COVID',            
-        'filePath': 'KnownMisinfo.xlsx - Table1.csv',
+        'dataSource': 'myfile.json',
         'corpusFieldName': 'title',
         'idFieldName': 'debunking_date',
+        'encoding': 'utf-8',
+        'json_orientation': 'records',
         'reloadData': False,               # Will re-read input file and train a new model with the updated data
         # Advanced settings
         'numberTopics': 20,
@@ -29,7 +31,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
 
 ## Instructions
 
-1. Move your dataset (CSV or JSON) to the Data folder.
+1. Move your dataset (CSV, JSON, or subfolder) to the Data folder.
 2. Make sure you have installed the requirements:
 ```python
     pip install -r requirements.txt
@@ -50,8 +52,8 @@ You will find a set of figures for the five most common topics, as well as an ex
 1. datasetName
 A recognizable name of your choice for your output.
 
-2. filePath
-The name of the dataset file you are using - not the path. The file must be in the Data folder.
+2. dataSource (formerly filePath)
+The name of the dataset file or folder to be used - not the path. The file or folder must be in the Data folder. If a folder is used, the tool will attempt to aggregate all the files in that folder. All files must use the same column format.
 
 3. corpusFieldName
 The name of the field the tool will use to create a model for analysis. Typically, this will be the most verbose field of your dataset.
@@ -61,36 +63,49 @@ The name of the field the tool will use to create a model for analysis. Typicall
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 ![ID Field](/images/idField.png)
 
-5. reloadData
+5. (Optional) encoding
+Specifies the encoding of the file. Optional, UTF-8 is the default.
+
+6. (JSON only) json_orientation
+Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
+https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
+
+7. reloadData
 Make sure this is set to True is your data has changed. Otherwise the program will use stored information and the output will stay the same.
 
-6. numberTopics
+8. numberTopics
 The total number of topics you would like your corpus to be divided into. Experiment with this. Ten or 20 is usually a good number but larger datasets may obtain good results with 50 topics.
 
-7. numberWords
+9. numberWords
 The total number of words you would like to represent each topic. For example, if numberWords = 10 this will be the result:
 ![Words](/images/wordCount.png)
 
-8. moving_avg_window_size
+10. moving_avg_window_size
 The size of the moving average window used to smooth the generated figures. Experiment with different numbers if working with a large dataset, your window size may need to increase.
 
-9. retrainModel
+11. retrainModel
 Use the same data but retrain the modal. This is useful if you are an advanced user making changes to the model settings such as minimumProbability.
 
-10. start_date
+12. start_date
 While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field.
 
-11. end_date
+13. end_date
 Same as above for the end date.
 
-12. minimumProbability
+14. minimumProbability
 Topics with a probability lower than this threshold will be filtered out.
 
-13. nbFigures
+15. nbFigures
 Number of figures generated to the output folder. Keep this number under the number of topics.
 
-14. lang
+16. (Optional) lang
 Optional tuple where the first item is the name of the language column/attribute and the second is the language.
 
-15. topicGroups
+17. (Optional) topicGroups
 Optional list of topics to print on one graph. First run on your dataset then check what resulting figures you would like to group up.
+
+18. (Optional) x_label
+Add label to the x axis.
+
+19. (Optional) y_label
+Add label to the y axis.

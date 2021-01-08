@@ -123,6 +123,10 @@ def save_figures(settings, topics_df, words_df, n=5):
         # Smooth curve
         df = df.rolling(settings['moving_avg_window_size']).mean()
         plot = df.plot(color=getColor())
+        if 'x_label' in settings:
+            plot.set_ylabel(settings['x_label'])
+        if 'y_label' in settings:
+            plot.set_ylabel(settings['y_label'])
         fig = plot.get_figure()
         fig.savefig(os.path.join(output_dir, f'Topic_{topic}.png'))
         fig.clf()

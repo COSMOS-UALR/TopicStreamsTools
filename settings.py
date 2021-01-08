@@ -1,6 +1,6 @@
 comments_settings = {
     'datasetName': 'comments',
-    'filePath': 'VideoCommentsWithChannelandCategoryJan1-April302020.json',
+    'dataSource': 'VideoCommentsWithChannelandCategoryJan1-April302020.json',
     'corpusFieldName': 'comment_displayed',
     'idFieldName': 'published_date',
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
@@ -12,11 +12,29 @@ comments_settings = {
     'nbFigures': 10,
 }
 
+yt_settings = {
+    'datasetName': 'February_comments',
+    'dataSource': 'February_2020.json',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 100,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+    # 'topicGroups': [[2, 7, 6, 1, 5]],
+}
+
 DOD_AUS_settings = {
-    'datasetName': 'DOD_AUSI',
-    'filePath': 'DOD_AUSI_JSON.json',
+    'datasetName': 'DOD_AUSI_JSON',
+    'dataSource': 'DOD_AUSI_JSON.json',
     'corpusFieldName': 'content',
     'idFieldName': 'published_date',
+    'json_orientation': 'records',
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
@@ -25,13 +43,13 @@ DOD_AUS_settings = {
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
-    'topicGroups': [[2, 3]],
+    'topicGroups': [[2, 7, 6, 1, 5]],
 }
 
 covid_settings = {
     'datasetName': 'test',
     # 'datasetName': 'COVID_themes',
-    'filePath': 'covid.csv',
+    'dataSource': 'covid.csv',
     'corpusFieldName': 'title',
     # 'corpusFieldName': 'THEME',
     'idFieldName': 'debunking_date',
@@ -49,7 +67,7 @@ covid_settings = {
 
 muri_settings = {
     'datasetName': 'MURI',
-    'filePath': 'MURI blog data.json',
+    'dataSource': 'MURI blog data.json',
     'corpusFieldName': 'post',
     'idFieldName': 'date',
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
