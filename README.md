@@ -52,60 +52,60 @@ You will find a set of figures for the five most common topics, as well as an ex
 1. datasetName
 A recognizable name of your choice for your output.
 
-2. dataSource (formerly filePath)
+1. dataSource (formerly filePath)
 The name of the dataset file or folder to be used - not the path. The file or folder must be in the Data folder. If a folder is used, the tool will attempt to aggregate all the files in that folder. All files must use the same column format.
 
-3. corpusFieldName
+1. corpusFieldName
 The name of the field the tool will use to create a model for analysis. Typically, this will be the most verbose field of your dataset.
 ![Text Field](/images/textField.png)
 
-4. idFieldName
+1. idFieldName
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 ![ID Field](/images/idField.png)
 
-5. (Optional) encoding
+1. (Optional) encoding
 Specifies the encoding of the file. Optional, UTF-8 is the default.
 
-6. (JSON only) json_orientation
+1. (JSON only) json_orientation
 Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
 https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
 
-7. reloadData
+1. reloadData
 Make sure this is set to True is your data has changed. Otherwise the program will use stored information and the output will stay the same.
 
-8. numberTopics
+1. numberTopics
 The total number of topics you would like your corpus to be divided into. Experiment with this. Ten or 20 is usually a good number but larger datasets may obtain good results with 50 topics.
 
-9. numberWords
+1. numberWords
 The total number of words you would like to represent each topic. For example, if numberWords = 10 this will be the result:
 ![Words](/images/wordCount.png)
 
-10. moving_avg_window_size
+1. moving_avg_window_size
 The size of the moving average window used to smooth the generated figures. Experiment with different numbers if working with a large dataset, your window size may need to increase.
 
-11. retrainModel
+1. retrainModel
 Use the same data but retrain the modal. This is useful if you are an advanced user making changes to the model settings such as minimumProbability.
 
-12. start_date
+1. start_date
 While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field.
 
-13. end_date
+1. end_date
 Same as above for the end date.
 
-14. minimumProbability
+1. minimumProbability
 Topics with a probability lower than this threshold will be filtered out.
 
-15. nbFigures
+1. nbFigures
 Number of figures generated to the output folder. Keep this number under the number of topics.
 
-16. (Optional) lang
+1. (Optional) lang
 Optional tuple where the first item is the name of the language column/attribute and the second is the language.
 
-17. (Optional) topicGroups
+1. (Optional) topicGroups
 Optional list of topics to print on one graph. First run on your dataset then check what resulting figures you would like to group up.
 
-18. (Optional) x_label
+1. (Optional) x_label
 Add label to the x axis.
 
-19. (Optional) y_label
+1. (Optional) y_label
 Add label to the y axis.
