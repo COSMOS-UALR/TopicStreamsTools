@@ -12,21 +12,55 @@ comments_settings = {
     'nbFigures': 10,
 }
 
-yt_settings = {
+jan_yt_settings = {
+    'datasetName': 'January_comments',
+    'dataSource': 'January_2020.json',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
+posts_settings = {
+    'datasetName': 'posts',
+    'dataSource': 'Post_data.json',
+    'corpusFieldName': 'content',
+    'idFieldName': 'published_date',
+    'json_orientation': 'records',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
+feb_yt_settings = {
     'datasetName': 'February_comments',
     'dataSource': 'February_2020.json',
     'corpusFieldName': 'comment_displayed',
     'idFieldName': 'published_date',
     'json_orientation': 'columns',
+    'roundToDay': False,
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
-    'moving_avg_window_size': 100,
+    'moving_avg_window_size': 1000,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
-    # 'topicGroups': [[2, 7, 6, 1, 5]],
 }
 
 DOD_AUS_settings = {
