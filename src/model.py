@@ -83,7 +83,10 @@ def read_data(settings, dataSource, corpusFieldName, idFieldName):
     print("Fields:")
     print(df.columns.values)
     #Convert to datetime format (useful to filter by date) and round to nearest day
-    df[idFieldName] = pd.Series(pd.to_datetime(df[idFieldName])).dt.round("D")
+    if 'roundToDay' in settings and settings['roundToDay'] is True:
+        df[idFieldName] = pd.Series(pd.to_datetime(df[idFieldName])).dt.round("D")
+    else:
+        df[idFieldName] = pd.Series(pd.to_datetime(df[idFieldName]))
     df = df.set_index([idFieldName])
     df.sort_index(inplace=True)
     ids = df.index.values

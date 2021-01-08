@@ -70,6 +70,9 @@ Specifies the encoding of the file. Optional, UTF-8 is the default.
 Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
 https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
 
+1. roundToDay
+If defined and True, rounds dates to the nearest day. Better for larger corpora spanning over multiple months.
+
 1. reloadData
 Make sure this is set to True is your data has changed. Otherwise the program will use stored information and the output will stay the same.
 
