@@ -12,6 +12,23 @@ comments_settings = {
     'nbFigures': 10,
 }
 
+cmb_yt_settings = {
+    'datasetName': 'Combined_comments',
+    'dataSource': 'yt_comments',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
 jan_yt_settings = {
     'datasetName': 'January_comments',
     'dataSource': 'January_2020.json',
@@ -40,8 +57,8 @@ posts_settings = {
     'numberTopics': 20,
     'numberWords': 10,
     'moving_avg_window_size': 1000,
-    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
 }
@@ -59,6 +76,57 @@ feb_yt_settings = {
     'moving_avg_window_size': 1000,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
+mar_yt_settings = {
+    'datasetName': 'March_comments',
+    'dataSource': 'March_2020.json',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
+apr_yt_settings = {
+    'datasetName': 'April_comments',
+    'dataSource': 'April_2020.json',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+}
+
+may_yt_settings = {
+    'datasetName': 'May_comments',
+    'dataSource': 'May_2020.json',
+    'corpusFieldName': 'comment_displayed',
+    'idFieldName': 'published_date',
+    'json_orientation': 'columns',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_avg_window_size': 1000,
+    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
 }
