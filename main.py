@@ -7,7 +7,7 @@ from src.model import get_model
 from src.matrix import createMatrix
 from settings import *
 
-settings = yt_settings
+settings = feb_yt_settings
 
 def main(settings):
 
