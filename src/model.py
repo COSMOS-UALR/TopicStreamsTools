@@ -55,10 +55,15 @@ def read_file(settings, dataFile):
     if data_type == '.json':
         json_orientation = settings['json_orientation'] if 'json_orientation' in settings else None
         df = pd.read_json(dataFile, orient=json_orientation, encoding=encoding)
+        df = df[[settings['corpusFieldName'], settings['idFieldName']]]
     elif data_type == '.csv':
         df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['idFieldName']])
     else:
         raise Exception
+    total_items = df.shape[0]
+    df.dropna(inplace=True)
+    nan_items = total_items - df.shape[0]
+    print(f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
 def read_data(settings, dataSource, corpusFieldName, idFieldName):
@@ -67,7 +72,6 @@ def read_data(settings, dataSource, corpusFieldName, idFieldName):
     if os.path.isdir(dataSource):
         for filename in os.listdir(dataSource):
             file_df = read_file(settings, os.path.join(dataSource, filename))
-            print(f"Loading {file_df.shape[0]} items from {filename}.")
             if df is None:
                 df = file_df
             else:
