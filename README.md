@@ -15,6 +15,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'idFieldName': 'debunking_date',
         'encoding': 'utf-8',
         'json_orientation': 'records',
+        'roundToDay': True,
         'reloadData': False,               # Will re-read input file and train a new model with the updated data
         # Advanced settings
         'numberTopics': 20,
@@ -26,6 +27,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'minimumProbability': 0.00000001,
         'nbFigures': 5,
         'topicGroups': [[2, 3]],
+        'addLegend': True,
     }
 ```
 
@@ -106,6 +108,9 @@ Optional tuple where the first item is the name of the language column/attribute
 
 1. (Optional) topicGroups
 Optional list of topics to print on one graph. First run on your dataset then check what resulting figures you would like to group up.
+
+1. (Optional) addLegend
+Add a legend to any overlapping plot.
 
 1. (Optional) x_label
 Add label to the x axis.

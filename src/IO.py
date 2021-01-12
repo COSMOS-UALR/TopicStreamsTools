@@ -131,7 +131,11 @@ def save_overlapping_plot(settings, dft, topic_group, output_dir):
         df = dft.iloc[topic]
         # Smooth curve
         df = df.rolling(settings['moving_avg_window_size']).mean()
-        plot = df.plot(color=getColor())
+        plot = df.plot(color=getColor(), label=f'Topic {topic}')
+    if 'addLegend' in settings and settings['addLegend'] is True:
+        box = plot.get_position()
+        plot.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 1])
+        plot.legend(bbox_to_anchor=(0.5, -0.170), loc='upper center', ncol=5)
     fig = plot.get_figure()
     fig.savefig(os.path.join(output_dir, f'Topics_{"-".join(str(x) for x in topic_group)}.png'))
     fig.clf()
