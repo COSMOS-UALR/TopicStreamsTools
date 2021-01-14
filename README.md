@@ -20,7 +20,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         # Advanced settings
         'numberTopics': 20,
         'numberWords': 10,
-        'moving_avg_window_size': 20,
+        'moving_average_size': 5,
         'retrainModel': False,             # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
         'start_date': "2020-02-01",        # Optional - will only select items from this date when creating the topic distribution matrix
         'end_date': "2020-03-01",          # Optional - will only select items up to this date when creating the topic distribution matrix
@@ -85,8 +85,8 @@ The total number of topics you would like your corpus to be divided into. Experi
 The total number of words you would like to represent each topic. For example, if numberWords = 10 this will be the result:
 ![Words](/images/wordCount.png)
 
-1. moving_avg_window_size
-The size of the moving average window used to smooth the generated figures. Experiment with different numbers if working with a large dataset, your window size may need to increase.
+1. moving_average_size
+Percentile value, indicates what percentage of the dataset size to use as a moving average window to smooth the resulting figures. Values between 1 and 15 are recommended but you may need to experiment with different numbers. Note that larger values may make figures lose resolution. Depending on the composition of your dataset some dates may get lost if the value is too high. Set to 0 to forego using a moving average.
 
 1. retrainModel
 Use the same data but retrain the modal. This is useful if you are an advanced user making changes to the model settings such as minimumProbability.

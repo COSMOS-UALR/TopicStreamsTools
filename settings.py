@@ -1,17 +1,3 @@
-comments_settings = {
-    'datasetName': 'comments',
-    'dataSource': 'VideoCommentsWithChannelandCategoryJan1-April302020.json',
-    'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
-    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    'numberTopics': 10,
-    'numberWords': 10,
-    'moving_avg_window_size': 200,
-    'minimumProbability': 0.00000001,
-    'nbFigures': 10,
-}
-
 cmb_yt_settings = {
     'datasetName': 'Combined_comments',
     'dataSource': 'yt_comments',
@@ -22,11 +8,13 @@ cmb_yt_settings = {
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
-    'moving_avg_window_size': 1000,
+    'moving_average_size': 5,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
+    'topicGroups': [[18, 15, 1, 7, 9, 5, 0, 8, 11, 3]],
+    'addLegend': True,
 }
 
 jan_yt_settings = {
@@ -39,7 +27,8 @@ jan_yt_settings = {
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
-    'moving_avg_window_size': 1000,
+    'moving_average_size': 1,
+    # 'moving_avg_window_size': 1000,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
@@ -48,83 +37,17 @@ jan_yt_settings = {
 
 posts_settings = {
     'datasetName': 'posts',
-    'dataSource': 'Post_data.json',
-    'corpusFieldName': 'content',
+    'dataSource': 'posts.json',
+    'corpusFieldName': 'comment_displayed',
+    # 'dataSource': 'Post_data.json',
+    # 'corpusFieldName': 'content',
     'idFieldName': 'published_date',
     'json_orientation': 'records',
     'roundToDay': False,
     # Advanced settings
-    'numberTopics': 20,
+    'numberTopics': 10,
     'numberWords': 10,
-    'moving_avg_window_size': 1000,
-    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    'minimumProbability': 0.00000001,
-    'nbFigures': 10,
-}
-
-feb_yt_settings = {
-    'datasetName': 'February_comments',
-    'dataSource': 'February_2020.json',
-    'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
-    'json_orientation': 'columns',
-    'roundToDay': False,
-    # Advanced settings
-    'numberTopics': 20,
-    'numberWords': 10,
-    'moving_avg_window_size': 1000,
-    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    'minimumProbability': 0.00000001,
-    'nbFigures': 10,
-}
-
-mar_yt_settings = {
-    'datasetName': 'March_comments',
-    'dataSource': 'March_2020.json',
-    'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
-    'json_orientation': 'columns',
-    'roundToDay': False,
-    # Advanced settings
-    'numberTopics': 20,
-    'numberWords': 10,
-    'moving_avg_window_size': 1000,
-    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    'minimumProbability': 0.00000001,
-    'nbFigures': 10,
-}
-
-apr_yt_settings = {
-    'datasetName': 'April_comments',
-    'dataSource': 'April_2020.json',
-    'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
-    'json_orientation': 'columns',
-    'roundToDay': False,
-    # Advanced settings
-    'numberTopics': 20,
-    'numberWords': 10,
-    'moving_avg_window_size': 1000,
-    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-    'minimumProbability': 0.00000001,
-    'nbFigures': 10,
-}
-
-may_yt_settings = {
-    'datasetName': 'May_comments',
-    'dataSource': 'May_2020.json',
-    'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
-    'json_orientation': 'columns',
-    'roundToDay': False,
-    # Advanced settings
-    'numberTopics': 20,
-    'numberWords': 10,
-    'moving_avg_window_size': 1000,
+    'moving_average_size': 2,
     'reloadData': True,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
@@ -140,7 +63,7 @@ DOD_AUS_settings = {
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
-    'moving_avg_window_size': 1000,
+    'moving_average_size': 2,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
@@ -158,7 +81,7 @@ covid_settings = {
     # Advanced settings
     'numberTopics': 20,
     'numberWords': 10,
-    'moving_avg_window_size': 20,
+    'moving_average_size': 2,
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
@@ -178,7 +101,7 @@ muri_settings = {
     'end_date': "2016-01-01",           # Optional - will only select items up to this date when creating the topic distribution matrix
     'numberTopics': 50,
     'numberWords': 10,
-    'moving_avg_window_size': 50,
+    'moving_average_size': 5,
     'minimumProbability': 0.00000001,
     'nbFigures': 5,
     'lang': ('language', 'English'),   # Optional - if specified, will filter by column 'language' whose value is 'English'
