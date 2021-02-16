@@ -12,7 +12,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'datasetName': 'COVID',            
         'dataSource': 'myfile.json',
         'corpusFieldName': 'title',
-        'idFieldName': 'debunking_date',
+        'dateFieldName': 'debunking_date',
         'encoding': 'utf-8',
         'json_orientation': 'records',
         'roundToDay': True,
@@ -62,7 +62,7 @@ The name of the dataset file or folder to be used - not the path. The file or fo
 The name of the field the tool will use to create a model for analysis. Typically, this will be the most verbose field of your dataset.
 ![Text Field](/images/textField.png)
 
-1. idFieldName
+1. dateFieldName
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 ![ID Field](/images/idField.png)
 

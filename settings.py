@@ -2,7 +2,7 @@ cmb_yt_settings = {
     'datasetName': 'Combined_comments',
     'dataSource': 'yt_comments',
     'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'columns',
     'roundToDay': False,
     # Advanced settings
@@ -21,7 +21,7 @@ covid_yt_settings = {
     'datasetName': 'COVID_March_YT_Comments',
     'dataSource': 'COVID_keywords_March_comments.json',
     'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'columns',
     'roundToDay': False,
     'model_type': 'LDA',
@@ -46,7 +46,7 @@ covid_videos_settings = {
     'datasetName': 'COVID_March_videos',
     'dataSource': 'COVID_March_videos.json',
     'corpusFieldName': 'video_title',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'columns',
     'roundToDay': False,
     'model_type': 'LDA',
@@ -55,10 +55,10 @@ covid_videos_settings = {
     'numberWords': 10,
     'moving_average_size': 15,
     # 'moving_avg_window_size': 1000,
-    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
-    'distributionInWorksheet': False,
+    'distributionInWorksheet': True,
     'nbFigures': 10,
     'topicGroups': [[0,17,6]],
     'addLegend': True
@@ -68,7 +68,7 @@ jan_yt_settings = {
     'datasetName': 'January_comments',
     'dataSource': 'January_2020.json',
     'corpusFieldName': 'comment_displayed',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'columns',
     'roundToDay': False,
     'model_type': 'LDA',
@@ -89,7 +89,7 @@ posts_settings = {
     'corpusFieldName': 'comment_displayed',
     # 'dataSource': 'Post_data.json',
     # 'corpusFieldName': 'content',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'records',
     'roundToDay': False,
     # Advanced settings
@@ -106,7 +106,7 @@ DOD_AUS_settings = {
     'datasetName': 'DOD_AUSI_JSON',
     'dataSource': 'DOD_AUSI_JSON.json',
     'corpusFieldName': 'content',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'json_orientation': 'records',
     # Advanced settings
     'numberTopics': 20,
@@ -124,7 +124,7 @@ misc_sets = {
     'datasetName': 'descrp',
     'dataSource': 'descrp.json',
     'corpusFieldName': 'description',
-    'idFieldName': 'published_date',
+    'dateFieldName': 'published_date',
     'model_type': 'LDA',
     'json_orientation': 'records',
     'encoding': 'iso8859_14',
@@ -144,7 +144,7 @@ covid_settings = {
     'dataSource': 'covid.csv',
     # 'corpusFieldName': 'title',
     'corpusFieldName': 'THEME',
-    'idFieldName': 'debunking_date',
+    'dateFieldName': 'debunking_date',
     'roundToDay': True,
     'model_type': 'LDA',
     # Advanced settings
@@ -166,7 +166,7 @@ muri_settings = {
     'datasetName': 'MURI',
     'dataSource': 'MURI blog data.json',
     'corpusFieldName': 'post',
-    'idFieldName': 'date',
+    'dateFieldName': 'date',
     'reloadData': False,                # Will re-read your input file and train a new model with the updated data
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'start_date': "2015-01-01",         # Optional - will only select items from this date when creating the topic distribution matrix

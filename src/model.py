@@ -56,9 +56,9 @@ def read_file(settings, dataFile):
     if data_type == '.json':
         json_orientation = settings['json_orientation'] if 'json_orientation' in settings else None
         df = pd.read_json(dataFile, orient=json_orientation, encoding=encoding)
-        df = df[[settings['corpusFieldName'], settings['idFieldName']]]
+        df = df[[settings['corpusFieldName'], settings['dateFieldName']]]
     elif data_type == '.csv':
-        df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['idFieldName']])
+        df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['dateFieldName']])
     else:
         raise Exception
     total_items = df.shape[0]
@@ -67,7 +67,7 @@ def read_file(settings, dataFile):
     print(f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
-def read_data(settings, dataSource, corpusFieldName, idFieldName):
+def read_data(settings, dataSource, corpusFieldName, dateFieldName):
     df = None
     ids = None
     if os.path.isdir(dataSource):
@@ -89,10 +89,10 @@ def read_data(settings, dataSource, corpusFieldName, idFieldName):
     print(df.columns.values)
     #Convert to datetime format (useful to filter by date) and round to nearest day
     if 'roundToDay' in settings and settings['roundToDay'] is True:
-        df[idFieldName] = pd.Series(pd.to_datetime(df[idFieldName])).dt.round("D")
+        df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName])).dt.round("D")
     else:
-        df[idFieldName] = pd.Series(pd.to_datetime(df[idFieldName]))
-    df = df.set_index([idFieldName])
+        df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName]))
+    df = df.set_index([dateFieldName])
     df.sort_index(inplace=True)
     ids = df.index.values
     raw_corpus = df[corpusFieldName]
@@ -106,7 +106,7 @@ def get_data(settings):
             print("Failure to find processed data. Reloading corpus.")
         print("Processing corpus...")
         dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
-        raw_corpus, ids = read_data(settings, dataSource, settings['corpusFieldName'], settings['idFieldName'])
+        raw_corpus, ids = read_data(settings, dataSource, settings['corpusFieldName'], settings['dateFieldName'])
         bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
     return bow_corpus, dictionary, ids
 
