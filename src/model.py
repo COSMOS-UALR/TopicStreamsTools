@@ -1,6 +1,7 @@
 from collections import defaultdict
 from gensim import corpora
 from gensim import models
+from gensim.models import HdpModel
 from nltk.corpus import stopwords
 from pandas.io.json import json_normalize  
 from tqdm import tqdm
@@ -9,7 +10,7 @@ from pathlib import Path
 import json, os, re, string
 import pandas as pd
 
-from .IO import loadData, loadFiles, load_tmp, save_model, save_tmp, BOW_FILE, DICT_FILE, ID_FILE
+from .IO import loadData, load_tmp, load_model, save_model, save_tmp, BOW_FILE, DICT_FILE, ID_FILE
 
 def processData(ids, raw_corpus, datasetName):
         def processCorpus(raw_corpus, min_token_len=3):
@@ -96,33 +97,41 @@ def read_data(settings, dataSource, corpusFieldName, idFieldName):
     ids = df.index.values
     raw_corpus = df[corpusFieldName]
     return raw_corpus, ids
-    
-def create_model(settings):
 
-    bow_corpus, dictionary, ids = loadData(settings['datasetName'])
-
+def get_data(settings):
+    if not settings['reloadData']:
+        bow_corpus, dictionary, ids = loadData(settings['datasetName'])
     if settings['reloadData'] or bow_corpus is None or dictionary is None or ids is None:
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
-        print("Processing model and corpus...")
+        print("Processing corpus...")
         dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
         raw_corpus, ids = read_data(settings, dataSource, settings['corpusFieldName'], settings['idFieldName'])
         bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
+    return bow_corpus, dictionary, ids
 
-    print("Training model. This may take several minutes depending on the size of the corpus.")
-    model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary, minimum_probability=settings['minimumProbability'])
-    save_model(settings['datasetName'], model)
 
-    return model, bow_corpus, ids
-
-def get_model(settings):
-    if settings['reloadData'] or settings['retrainModel']:
-        return create_model(settings)
+def create_model(settings, model_type, bow_corpus, dictionary):
+    print(f"Training {model_type} model. This may take several minutes depending on the size of the corpus.")
+    model = None
+    if model_type == 'LDA':
+        model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary, minimum_probability=settings['minimumProbability'])
+    elif model_type == 'HDP':
+        model = HdpModel(bow_corpus, dictionary)
     else:
+        print('Invalid model')
+        return
+    save_model(settings['datasetName'], model, model_type)
+    return model
+
+def get_model(settings, model_type='LDA'):
+    model = None
+    bow_corpus, dictionary, ids = get_data(settings)
+    if not settings['retrainModel']:
+        model = load_model(settings['datasetName'], model_type)
+    if settings['retrainModel'] or model is None:
+        if not settings['retrainModel']:
+            print('Failed to load model - recreating.')
         print("Loading model and corpus...")
-        model, bow_corpus, ids = loadFiles(settings['datasetName'])
-        if model is None or bow_corpus is None or ids is None:
-            print("Failed to load files - recreating model")
-            return create_model(settings)
-        else:
-            return model, bow_corpus, ids
+        model = create_model(settings, model_type, bow_corpus, dictionary)
+    return model, bow_corpus, ids

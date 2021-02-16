@@ -70,14 +70,19 @@ def print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dis
               + ', proportion=' + str(np.around(dominant_topic_dist[topic_index], 4)))
     print()
 
-def get_doc_topic_distributions(model, corpus):
+def get_doc_topic_distributions(settings, model, corpus):
    topic_distributions = []
+#    alpha = model.hdp_to_lda()[0]
+#    topics_nos = [x[0] for x in shown_topics ]
+#    weights = [ sum([item[1] for item in shown_topics[topicN][1]]) for topicN in topics_nos ]
+#    df = pd.DataFrame({'topic_id' : topics_nos, 'weight' : weights})
    #FILTER BY DATES HERE
    for i, doc in enumerate(tqdm(corpus)):
        doc_dist = model[doc]
-       doc_distribution = np.zeros(len(doc_dist), dtype='float64')
+       doc_distribution = np.zeros(settings['numberTopics'], dtype='float64')
        for (topic, val) in doc_dist:
-           doc_distribution[topic] = val
+           if topic < settings['numberTopics']:
+                doc_distribution[topic] = val
        topic_distributions.append(doc_distribution)
    topic_distributions = np.asarray(topic_distributions)
    return topic_distributions
@@ -103,7 +108,7 @@ def createMatrix(settings, model, bow_corpus, ids):
 
     # Output Topic Distribution and Topic Words
     print("Generate topic distribution data")
-    distribution = get_doc_topic_distributions(model, bow_corpus)
+    distribution = get_doc_topic_distributions(settings, model, bow_corpus)
     print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
@@ -117,7 +122,7 @@ def createMatrix(settings, model, bow_corpus, ids):
 
     # Sort words by descending topic count
     df2 = df2.sort_values("Topic Count", ascending=False)
-    save_df(settings['datasetName'], DISTRIB_FILE, df1)
-    save_df(settings['datasetName'], WORDS_FILE, df2)
+    save_df(settings, DISTRIB_FILE, df1)
+    save_df(settings, WORDS_FILE, df2)
 
     return df1, df2

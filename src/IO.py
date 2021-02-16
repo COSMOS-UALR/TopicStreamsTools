@@ -40,14 +40,18 @@ def load_tmp(datasetName, suffix):
 
 ### DATAFRAMES ###
 
-def save_df(datasetName, file, df):
-    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + file)
+def save_df(settings, file, df):
+    datasetName = settings['datasetName']
+    model_type = settings['model_type']
+    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + model_type + '_' + file)
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
     df.to_pickle(file_path)
 
-def load_df(datasetName, file):
-    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + file)
+def load_df(settings, file):
+    datasetName = settings['datasetName']
+    model_type = settings['model_type']
+    file_path = os.path.join(PROCESSED_DATA_FOLDER, datasetName + '_' + model_type + '_' + file)
     if not os.path.isfile(file_path):
         print(f"{file_path} not found.")
         return None
@@ -55,29 +59,23 @@ def load_df(datasetName, file):
 
 ### MODELS ###
 
-def getModelLocation(datasetName):
-    return os.path.join(os.getcwd(), 'models', datasetName, 'LDAmodel')
+def getModelLocation(datasetName, model_type):
+    return os.path.join(os.getcwd(), 'models', datasetName, model_type)
 
-def save_model(datasetName, model):
-    destination = getModelLocation(datasetName)
+def save_model(datasetName, model, model_type):
+    destination = getModelLocation(datasetName, model_type)
     if not os.path.exists(os.path.dirname(destination)):
         os.makedirs(os.path.dirname(destination))
     model.save(destination)
 
-def load_model(datasetName):
-    file_path = getModelLocation(datasetName)
+def load_model(datasetName, model_type):
+    file_path = getModelLocation(datasetName, model_type)
     if not os.path.isfile(file_path):
         print(f"{file_path} not found.")
         return None
     return models.LdaModel.load(file_path)
 
 ### MULTIPLE FILES ###
-
-def loadFiles(datasetName):
-    model = load_model(datasetName)
-    bow_corpus = load_tmp(datasetName, BOW_FILE)
-    ids = load_tmp(datasetName, ID_FILE)
-    return model, bow_corpus, ids
 
 def loadData(datasetName):
     bow_corpus = load_tmp(datasetName, BOW_FILE)
@@ -88,7 +86,7 @@ def loadData(datasetName):
 ### OUTPUT ###
 
 def save_to_output(settings):
-    output_dir = os.path.join(os.getcwd(), 'Output', settings['datasetName'])
+    output_dir = os.path.join(os.getcwd(), 'Output', settings['datasetName'], settings['model_type'])
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     return output_dir
@@ -97,12 +95,13 @@ def save_to_output(settings):
 
 def save_to_excel(settings, distributionDF, wordsDF):
     print("Writing to excel. This may take a few minutes for larger corpora.")
-    fileName = f"TopicDistribution_{settings['datasetName']}.xlsx"
+    fileName = f"{settings['model_type']}_TopicDistribution_{settings['datasetName']}.xlsx"
     output_dir = save_to_output(settings)
     output_dest = os.path.join(output_dir, fileName)
     with pd.ExcelWriter(output_dest) as writer:
         wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
-        distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
+        if 'distributionInWorksheet' in settings and settings['distributionInWorksheet']:
+            distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
     print(f"Finished writing topic distribution data to {output_dest}.")
 
 

@@ -17,6 +17,7 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'json_orientation': 'records',
         'roundToDay': True,
         'reloadData': False,               # Will re-read input file and train a new model with the updated data
+        'model_type': 'LDA',
         # Advanced settings
         'numberTopics': 20,
         'numberWords': 10,
@@ -64,6 +65,9 @@ The name of the field the tool will use to create a model for analysis. Typicall
 1. idFieldName
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 ![ID Field](/images/idField.png)
+
+1. (Optional) model_type
+Type of topic model to use. Options: LDA, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
 
 1. (Optional) encoding
 Specifies the encoding of the file. Optional, UTF-8 is the default.
