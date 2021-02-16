@@ -112,17 +112,17 @@ def createMatrix(settings, model, bow_corpus, ids):
     print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
-    df1 = pd.DataFrame(distribution, index=ids, columns=topics)
+    topic_distrib_df = pd.DataFrame(distribution, index=ids, columns=topics)
     topic_data = []
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
     for topic, words_list in topics_words:
         topic_data.append(words_list + [dominant_topic_counts[topic]] + [np.around(dominant_topic_dist[topic], 4)])
     headers = [f"Word {i}" for i in range(0,len(words_list))] + ["Topic Count", "Distribution"]
-    df2 = pd.DataFrame(topic_data, columns=headers)
+    words_df = pd.DataFrame(topic_data, columns=headers)
 
     # Sort words by descending topic count
-    df2 = df2.sort_values("Topic Count", ascending=False)
-    save_df(settings, DISTRIB_FILE, df1)
-    save_df(settings, WORDS_FILE, df2)
+    words_df = words_df.sort_values("Topic Count", ascending=False)
+    save_df(settings, DISTRIB_FILE, topic_distrib_df)
+    save_df(settings, WORDS_FILE, words_df)
 
-    return df1, df2
+    return topic_distrib_df, words_df
