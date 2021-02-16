@@ -10,9 +10,9 @@ from pathlib import Path
 import json, os, re, string
 import pandas as pd
 
-from .IO import loadData, load_tmp, load_model, save_model, save_tmp, BOW_FILE, DICT_FILE, ID_FILE
+from .IO import loadData, load_tmp, load_model, save_model, save_tmp, BOW_FILE, DICT_FILE, TIMESTAMP_FILE
 
-def processData(ids, raw_corpus, datasetName):
+def processData(timestamps, raw_corpus, datasetName):
         def processCorpus(raw_corpus, min_token_len=3):
                 stoplist = set(stopwords.words('english'))
                 texts = []
@@ -44,11 +44,11 @@ def processData(ids, raw_corpus, datasetName):
         # Convert original corpus to a bag of words/list of vectors:
         print("Vectorizing corpus...")
         bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus)]
-        # Dump corpus, dictionary, and IDs to physical files for faster loading
+        # Dump corpus, dictionary, and timestamps to physical files for faster loading
         save_tmp(datasetName, BOW_FILE, bow_corpus)
         save_tmp(datasetName, DICT_FILE, dictionary)
-        save_tmp(datasetName, ID_FILE, ids)
-        return bow_corpus, dictionary, ids
+        save_tmp(datasetName, TIMESTAMP_FILE, timestamps)
+        return bow_corpus, dictionary, timestamps
 
 def read_file(settings, dataFile):
     data_type = Path(dataFile).suffix
@@ -69,7 +69,7 @@ def read_file(settings, dataFile):
 
 def read_data(settings, dataSource, corpusFieldName, dateFieldName):
     df = None
-    ids = None
+    timestamps = None
     if os.path.isdir(dataSource):
         for filename in os.listdir(dataSource):
             file_df = read_file(settings, os.path.join(dataSource, filename))
@@ -94,21 +94,21 @@ def read_data(settings, dataSource, corpusFieldName, dateFieldName):
         df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName]))
     df = df.set_index([dateFieldName])
     df.sort_index(inplace=True)
-    ids = df.index.values
+    timestamps = df.index.values
     raw_corpus = df[corpusFieldName]
-    return raw_corpus, ids
+    return raw_corpus, timestamps
 
 def get_data(settings):
     if not settings['reloadData']:
-        bow_corpus, dictionary, ids = loadData(settings['datasetName'])
-    if settings['reloadData'] or bow_corpus is None or dictionary is None or ids is None:
+        bow_corpus, dictionary, timestamps = loadData(settings['datasetName'])
+    if settings['reloadData'] or bow_corpus is None or dictionary is None or timestamps is None:
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
         print("Processing corpus...")
         dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
-        raw_corpus, ids = read_data(settings, dataSource, settings['corpusFieldName'], settings['dateFieldName'])
-        bow_corpus, dictionary, ids = processData(ids, raw_corpus, settings['datasetName'])
-    return bow_corpus, dictionary, ids
+        raw_corpus, timestamps = read_data(settings, dataSource, settings['corpusFieldName'], settings['dateFieldName'])
+        bow_corpus, dictionary, timestamps = processData(timestamps, raw_corpus, settings['datasetName'])
+    return bow_corpus, dictionary, timestamps
 
 
 def create_model(settings, model_type, bow_corpus, dictionary):
@@ -126,7 +126,7 @@ def create_model(settings, model_type, bow_corpus, dictionary):
 
 def get_model(settings, model_type='LDA'):
     model = None
-    bow_corpus, dictionary, ids = get_data(settings)
+    bow_corpus, dictionary, timestamps = get_data(settings)
     if not settings['retrainModel']:
         model = load_model(settings['datasetName'], model_type)
     if settings['retrainModel'] or model is None:
@@ -134,4 +134,4 @@ def get_model(settings, model_type='LDA'):
             print('Failed to load model - recreating.')
         print("Loading model and corpus...")
         model = create_model(settings, model_type, bow_corpus, dictionary)
-    return model, bow_corpus, ids
+    return model, bow_corpus, timestamps

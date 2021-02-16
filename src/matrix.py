@@ -87,9 +87,9 @@ def get_doc_topic_distributions(settings, model, corpus):
    topic_distributions = np.asarray(topic_distributions)
    return topic_distributions
 
-def createMatrix(settings, model, bow_corpus, ids):
+def createMatrix(settings, model, bow_corpus, timestamps):
 
-    df = pd.DataFrame(list(zip(ids, bow_corpus)), columns =['Date', 'val'])
+    df = pd.DataFrame(list(zip(timestamps, bow_corpus)), columns =['Date', 'val'])
     df = df.set_index(['Date'])
     df.sort_index(inplace=True)
     #Filter to relevant dates
@@ -98,7 +98,7 @@ def createMatrix(settings, model, bow_corpus, ids):
     if 'end_date' in settings:
         df = df.loc[:settings['end_date']]
     bow_corpus = df['val'].tolist()
-    ids = df.index.values
+    timestamps = df.index.values
 
     #Topics
     topic_distribution = model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
@@ -112,7 +112,7 @@ def createMatrix(settings, model, bow_corpus, ids):
     print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
-    topic_distrib_df = pd.DataFrame(distribution, index=ids, columns=topics)
+    topic_distrib_df = pd.DataFrame(distribution, index=timestamps, columns=topics)
     topic_data = []
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
     for topic, words_list in topics_words:
