@@ -87,8 +87,7 @@ def get_doc_topic_distributions(settings, model, corpus):
    topic_distributions = np.asarray(topic_distributions)
    return topic_distributions
 
-def createMatrix(settings, model, bow_corpus, timestamps):
-
+def filterDates(settings, bow_corpus, timestamps):
     df = pd.DataFrame(list(zip(timestamps, bow_corpus)), columns =['Date', 'val'])
     df = df.set_index(['Date'])
     df.sort_index(inplace=True)
@@ -99,6 +98,12 @@ def createMatrix(settings, model, bow_corpus, timestamps):
         df = df.loc[:settings['end_date']]
     bow_corpus = df['val'].tolist()
     timestamps = df.index.values
+    return bow_corpus, timestamps
+
+def createMatrix(settings, model, bow_corpus, corpusDF):
+    timestamps = corpusDF.index.values
+    if 'start_date' in settings or 'end_date' in settings:
+        bow_corpus, timestamps = filterDates(settings, bow_corpus, timestamps)
 
     #Topics
     topic_distribution = model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)

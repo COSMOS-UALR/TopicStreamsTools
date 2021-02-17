@@ -3,16 +3,15 @@ from gensim import corpora
 from gensim import models
 from gensim.models import HdpModel
 from nltk.corpus import stopwords
-from pandas.io.json import json_normalize  
 from tqdm import tqdm
 
 from pathlib import Path
-import json, os, re, string
+import os, re, string
 import pandas as pd
 
-from .IO import loadData, load_tmp, load_model, save_model, save_tmp, BOW_FILE, DICT_FILE, TIMESTAMP_FILE
+from .IO import loadData, load_model, save_df, save_model, save_tmp, BOW_FILE, DICT_FILE, CORPUS_ID_FILE
 
-def processData(timestamps, raw_corpus, datasetName):
+def processData(raw_corpus, datasetName):
         def processCorpus(raw_corpus, min_token_len=3):
                 stoplist = set(stopwords.words('english'))
                 texts = []
@@ -44,21 +43,23 @@ def processData(timestamps, raw_corpus, datasetName):
         # Convert original corpus to a bag of words/list of vectors:
         print("Vectorizing corpus...")
         bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus)]
-        # Dump corpus, dictionary, and timestamps to physical files for faster loading
+        # Dump processed data to files for faster loading
         save_tmp(datasetName, BOW_FILE, bow_corpus)
         save_tmp(datasetName, DICT_FILE, dictionary)
-        save_tmp(datasetName, TIMESTAMP_FILE, timestamps)
-        return bow_corpus, dictionary, timestamps
+        return bow_corpus, dictionary
 
 def read_file(settings, dataFile):
     data_type = Path(dataFile).suffix
     encoding = settings['encoding'] if 'encoding' in settings else 'utf-8'
+    selected_columns = [settings['corpusFieldName'], settings['dateFieldName']]
+    if 'idFieldName' in settings:
+        selected_columns.append(settings['idFieldName'])
     if data_type == '.json':
         json_orientation = settings['json_orientation'] if 'json_orientation' in settings else None
         df = pd.read_json(dataFile, orient=json_orientation, encoding=encoding)
-        df = df[[settings['corpusFieldName'], settings['dateFieldName']]]
+        df = df[selected_columns]
     elif data_type == '.csv':
-        df = pd.read_csv(dataFile, na_filter=False, usecols=[settings['corpusFieldName'], settings['dateFieldName']])
+        df = pd.read_csv(dataFile, na_filter=False, usecols=selected_columns)
     else:
         raise Exception
     total_items = df.shape[0]
@@ -67,9 +68,9 @@ def read_file(settings, dataFile):
     print(f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
-def read_data(settings, dataSource, corpusFieldName, dateFieldName):
+def read_data(settings, dataSource):
     df = None
-    timestamps = None
+    dateFieldName = settings['dateFieldName']
     if os.path.isdir(dataSource):
         for filename in os.listdir(dataSource):
             file_df = read_file(settings, os.path.join(dataSource, filename))
@@ -94,21 +95,23 @@ def read_data(settings, dataSource, corpusFieldName, dateFieldName):
         df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName]))
     df = df.set_index([dateFieldName])
     df.sort_index(inplace=True)
-    timestamps = df.index.values
-    raw_corpus = df[corpusFieldName]
-    return raw_corpus, timestamps
+    return df
 
 def get_data(settings):
+    datasetName = settings['datasetName']
     if not settings['reloadData']:
-        bow_corpus, dictionary, timestamps = loadData(settings['datasetName'])
-    if settings['reloadData'] or bow_corpus is None or dictionary is None or timestamps is None:
+        bow_corpus, dictionary, df = loadData(settings)
+    if settings['reloadData'] or bow_corpus is None or dictionary is None or df is None:
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
         print("Processing corpus...")
         dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
-        raw_corpus, timestamps = read_data(settings, dataSource, settings['corpusFieldName'], settings['dateFieldName'])
-        bow_corpus, dictionary, timestamps = processData(timestamps, raw_corpus, settings['datasetName'])
-    return bow_corpus, dictionary, timestamps
+        df = read_data(settings, dataSource)
+        raw_corpus = df[settings['corpusFieldName']]
+        bow_corpus, dictionary = processData(raw_corpus, datasetName)
+        # Dump id info to files for faster loading
+        save_df(settings, CORPUS_ID_FILE, df.drop(settings['corpusFieldName'], axis=1))
+    return bow_corpus, dictionary, df
 
 
 def create_model(settings, model_type, bow_corpus, dictionary):
@@ -126,7 +129,7 @@ def create_model(settings, model_type, bow_corpus, dictionary):
 
 def get_model(settings, model_type='LDA'):
     model = None
-    bow_corpus, dictionary, timestamps = get_data(settings)
+    bow_corpus, dictionary, corpus_df = get_data(settings)
     if not settings['retrainModel']:
         model = load_model(settings['datasetName'], model_type)
     if settings['retrainModel'] or model is None:
@@ -134,4 +137,4 @@ def get_model(settings, model_type='LDA'):
             print('Failed to load model - recreating.')
         print("Loading model and corpus...")
         model = create_model(settings, model_type, bow_corpus, dictionary)
-    return model, bow_corpus, timestamps
+    return model, bow_corpus, corpus_df

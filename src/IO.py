@@ -9,7 +9,7 @@ import pandas as pd
 PROCESSED_DATA_FOLDER = "processed_data"
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
-TIMESTAMP_FILE = 'timestamps.obj'
+CORPUS_ID_FILE = 'corpus_id.pkl'
 DISTRIB_FILE = 'distribDataframe.pkl'
 WORDS_FILE = 'wordsDataframe.pkl'
 
@@ -77,11 +77,12 @@ def load_model(datasetName, model_type):
 
 ### MULTIPLE FILES ###
 
-def loadData(datasetName):
+def loadData(settings):
+    datasetName = settings['datasetName']
     bow_corpus = load_tmp(datasetName, BOW_FILE)
     dictionary = load_tmp(datasetName, DICT_FILE)
-    timestamps = load_tmp(datasetName, TIMESTAMP_FILE)
-    return bow_corpus, dictionary, timestamps
+    corpus_df = load_df(settings, CORPUS_ID_FILE)
+    return bow_corpus, dictionary, corpus_df
 
 ### OUTPUT ###
 
