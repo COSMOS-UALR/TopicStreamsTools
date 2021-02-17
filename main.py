@@ -7,7 +7,8 @@ from src.model import get_model
 from src.matrix import createMatrix
 from settings import *
 
-settings = covid_yt_settings
+settings = posts_settings
+settings['model_type'] = settings['model_type'] if 'model_type' in settings else 'LDA'
 
 def main(settings):
 
@@ -16,10 +17,9 @@ def main(settings):
     wordsDF = load_df(settings, WORDS_FILE)
 
     if settings['reloadData'] or settings['retrainModel'] or (distributionDF is None or wordsDF is None):
-        model_type = settings['model_type'] if 'model_type' in settings else 'LDA'
-        model, bow_corpus, ids = get_model(settings, model_type)
+        model, bow_corpus, corpusDF = get_model(settings, settings['model_type'])
         print('Calculating Dataframes...')
-        distributionDF, wordsDF = createMatrix(settings, model, bow_corpus, ids)
+        distributionDF, wordsDF = createMatrix(settings, model, bow_corpus, corpusDF)
 
     save_to_excel(settings, distributionDF, wordsDF)
     

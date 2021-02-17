@@ -127,8 +127,9 @@ def create_model(settings, model_type, bow_corpus, dictionary):
     save_model(settings['datasetName'], model, model_type)
     return model
 
-def get_model(settings, model_type='LDA'):
+def get_model(settings):
     model = None
+    model_type = settings['model_type']
     bow_corpus, dictionary, corpus_df = get_data(settings)
     if not settings['retrainModel']:
         model = load_model(settings['datasetName'], model_type)
