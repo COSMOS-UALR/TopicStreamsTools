@@ -66,6 +66,10 @@ The name of the field the tool will use to create a model for analysis. Typicall
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 ![ID Field](/images/idField.png)
 
+1. (Optional) idFieldName
+Individual identifier such as a blog post ID, video ID, etc. If distributionInWorksheet is also set to true, this will generate an additional excel sheet in the form of an edge list. This is useful for analysts wishing to filter by individual topics to match particular items to a topic for further study.
+![ID Field](/images/edgeList.png)
+
 1. (Optional) model_type
 Type of topic model to use. Options: LDA, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
 

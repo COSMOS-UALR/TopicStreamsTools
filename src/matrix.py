@@ -102,6 +102,8 @@ def filterDates(settings, bow_corpus, timestamps):
 
 def createMatrix(settings, model, bow_corpus, corpusDF):
     timestamps = corpusDF.index.values
+    if 'idFieldName' in settings:
+        ids = corpusDF[settings['idFieldName']].values
     if 'start_date' in settings or 'end_date' in settings:
         bow_corpus, timestamps = filterDates(settings, bow_corpus, timestamps)
 
@@ -117,7 +119,10 @@ def createMatrix(settings, model, bow_corpus, corpusDF):
     print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
-    topic_distrib_df = pd.DataFrame(distribution, index=timestamps, columns=topics)
+    # Set IDs as index if defined then insert timestamp. If not, set timestamp as index
+    topic_distrib_df = pd.DataFrame(distribution, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
+    if 'idFieldName' in settings:
+        topic_distrib_df.insert(0, settings['dateFieldName'], timestamps)
     topic_data = []
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
     for topic, words_list in topics_words:

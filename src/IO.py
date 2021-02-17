@@ -94,6 +94,12 @@ def save_to_output(settings):
 
 ### EXCEL ###
 
+def getEdgeListDF(distributionDF, settings):
+    df = distributionDF.reset_index()
+    df = df.melt(id_vars=['index', settings['dateFieldName']], var_name='Topic', value_name='Topic Distribution')
+    df.sort_values(['index', 'Topic'], inplace=True)
+    return df.rename(columns={"index": settings['idFieldName']})
+
 def save_to_excel(settings, distributionDF, wordsDF):
     print("Writing to excel. This may take a few minutes for larger corpora.")
     fileName = f"{settings['model_type']}_TopicDistribution_{settings['datasetName']}.xlsx"
@@ -103,6 +109,9 @@ def save_to_excel(settings, distributionDF, wordsDF):
         wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
         if 'distributionInWorksheet' in settings and settings['distributionInWorksheet']:
             distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
+            if 'idFieldName' in settings:
+                edgeListDF = getEdgeListDF(distributionDF, settings)
+                edgeListDF.to_excel(writer, index=False, header=True, sheet_name='Edge List')
     print(f"Finished writing topic distribution data to {output_dest}.")
 
 

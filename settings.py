@@ -47,6 +47,7 @@ covid_videos_settings = {
     'dataSource': 'COVID_March_videos.json',
     'corpusFieldName': 'video_title',
     'dateFieldName': 'published_date',
+    'idFieldName': 'video_title',
     'json_orientation': 'columns',
     'roundToDay': False,
     'model_type': 'LDA',
@@ -85,19 +86,19 @@ jan_yt_settings = {
 
 posts_settings = {
     'datasetName': 'posts',
-    'dataSource': 'posts.json',
-    'corpusFieldName': 'comment_displayed',
-    # 'dataSource': 'Post_data.json',
-    # 'corpusFieldName': 'content',
-    'dateFieldName': 'published_date',
+    'dataSource': 'POST.json',
+    'corpusFieldName': 'post',
+    'dateFieldName': 'date',
+    'idFieldName': 'blogpost_id',
     'json_orientation': 'records',
+    'distributionInWorksheet': True,
     'roundToDay': False,
     # Advanced settings
     'numberTopics': 10,
     'numberWords': 10,
     'moving_average_size': 2,
-    'reloadData': True,                # Will re-read your input file and train a new model with the updated data
-    'retrainModel': True,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
 }
