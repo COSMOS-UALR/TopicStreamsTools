@@ -17,7 +17,7 @@ def main(settings):
     wordsDF = load_df(settings, WORDS_FILE)
 
     if settings['reloadData'] or settings['retrainModel'] or (distributionDF is None or wordsDF is None):
-        model, bow_corpus, corpusDF = get_model(settings, settings['model_type'])
+        model, bow_corpus, corpusDF = get_model(settings)
         print('Calculating Dataframes...')
         distributionDF, wordsDF = createMatrix(settings, model, bow_corpus, corpusDF)
 
