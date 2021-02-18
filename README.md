@@ -23,8 +23,6 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
         'numberWords': 10,
         'moving_average_size': 5,
         'retrainModel': False,             # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-        'start_date': "2020-02-01",        # Optional - will only select items from this date when creating the topic distribution matrix
-        'end_date': "2020-03-01",          # Optional - will only select items up to this date when creating the topic distribution matrix
         'minimumProbability': 0.00000001,
         'nbFigures': 5,
         'topicGroups': [[2, 3]],
@@ -39,8 +37,8 @@ For now, the quickest way to use the tool is to modify the settings in main.py.
 ```python
     pip install -r requirements.txt
 ```
-3. Open main.py in your preferred IDE and , referring to the documentation below, update your settings accordingly. The first four parameters must be filled, the rest can be left as is.
-4. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes.
+3. Open main.py in your preferred IDE and , referring to the documentation below, update your settings accordingly. The first four parameters must be updated, the rest can be left as is.
+4. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes. If you encounter errors, check first that the encoding of your file is correct and you have specified the correct JSON orientation if using.
 5. Open the Output/{datasetName} folder to find your results.
 
 ## Output
@@ -100,10 +98,10 @@ Percentile value, indicates what percentage of the dataset size to use as a movi
 Use the same data but retrain the modal. This is useful if you are an advanced user making changes to the model settings such as minimumProbability.
 
 1. (Optional) **start_date**
-While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field.
+While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field. Example value: '2020-02-01'.
 
 1. (Optional) **end_date**
-Same as above for the end date.
+Same as above for the end date. Example value: '2020-03-01'.
 
 1. **minimumProbability**
 Topics with a probability lower than this threshold will be filtered out.
