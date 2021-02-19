@@ -47,7 +47,6 @@ covid_videos_settings = {
     'dataSource': 'COVID_March_videos.json',
     'corpusFieldName': 'video_title',
     'dateFieldName': 'published_date',
-    'idFieldName': 'video_title',
     'json_orientation': 'columns',
     'roundToDay': False,
     'model_type': 'LDA',
