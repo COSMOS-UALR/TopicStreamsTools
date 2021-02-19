@@ -15,8 +15,7 @@ def processData(raw_corpus, datasetName):
         def processCorpus(raw_corpus, min_token_len=3):
                 stoplist = set(stopwords.words('english'))
                 texts = []
-                print("Normalizing corpus...")
-                for document in tqdm(raw_corpus):
+                for document in tqdm(raw_corpus, desc='Normalizing corpus'):
                         # lowercase the document string and replace all newlines and tabs with spaces.
                         lowercase_string = document.lower().replace('\n', ' ').replace('\t', ' ')
                         # replace all punctuation with spaces. (note: this includes punctuation that might occur inside a word).
@@ -27,22 +26,19 @@ def processData(raw_corpus, datasetName):
                         # split tokens on spaces, trim any space, stop tokens if len() < min_token_len or if in stoplist.
                         texts.append([token.strip() for token in no_nums_string.split(' ') if len(token.strip()) >= min_token_len and token.strip() not in stoplist])
                 # Count word frequencies
-                print("Counting word frequency...")
                 frequency = defaultdict(int)
-                for text in tqdm(texts):
+                for text in tqdm(texts, desc='Counting word frequency'):
                         for token in text:
                                 frequency[token] += 1
                 # Only keep words that appear more than once
-                print("Filtering out unique tokens...")
-                return [[token for token in text if frequency[token] > 1] for text in tqdm(texts)]
+                return [[token for token in text if frequency[token] > 1] for text in tqdm(texts, desc='Filtering out unique tokens')]
 
         processed_corpus = processCorpus(raw_corpus)
         print("Creating dictionary. This may take a few minutes depending on the size of the corpus.")
         dictionary = corpora.Dictionary(processed_corpus)
         dictionary.filter_extremes()
         # Convert original corpus to a bag of words/list of vectors:
-        print("Vectorizing corpus...")
-        bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus)]
+        bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus, desc='Vectorizing corpus')]
         # Dump processed data to files for faster loading
         save_tmp(datasetName, BOW_FILE, bow_corpus)
         save_tmp(datasetName, DICT_FILE, dictionary)

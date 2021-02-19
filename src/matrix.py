@@ -1,9 +1,3 @@
-#Topic Modelling
-from gensim import models
-
-#Misc
-import os
-import math
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -28,7 +22,7 @@ def get_dominant_topics_counts_and_distribution(doc_topics):
     # Topic counts start at 0 depending on num topics (or rows) in document-topic matrix.
     dominant_topic_counts = np.zeros(len(doc_topics[0]))
 
-    for topic_dist in tqdm(doc_topics):
+    for topic_dist in tqdm(doc_topics, desc='Fetching dominant topics'):
 
         # order the topic indices from largest to smallest probability. Without the -1, would get smallest to largest.
         sorted_topic_indices = np.argsort(-1 * topic_dist)
@@ -77,7 +71,7 @@ def get_doc_topic_distributions(settings, model, corpus):
 #    weights = [ sum([item[1] for item in shown_topics[topicN][1]]) for topicN in topics_nos ]
 #    df = pd.DataFrame({'topic_id' : topics_nos, 'weight' : weights})
    #FILTER BY DATES HERE
-   for i, doc in enumerate(tqdm(corpus)):
+   for doc in tqdm(corpus, desc='Generating topic distribution data'):
        doc_dist = model[doc]
        doc_distribution = np.zeros(settings['numberTopics'], dtype='float64')
        for (topic, val) in doc_dist:
@@ -114,9 +108,7 @@ def createMatrix(settings, model, bow_corpus, corpusDF):
         topics.append(topic_set[0])
 
     # Output Topic Distribution and Topic Words
-    print("Generate topic distribution data")
     distribution = get_doc_topic_distributions(settings, model, bow_corpus)
-    print("Get dominant topics")
     dominant_topic_counts, dominant_topic_dist = get_dominant_topics_counts_and_distribution(distribution)
     # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
     # Set IDs as index if defined then insert timestamp. If not, set timestamp as index

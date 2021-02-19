@@ -112,7 +112,7 @@ def save_to_excel(settings, distributionDF, wordsDF):
             if 'idFieldName' in settings:
                 edgeListDF = getEdgeListDF(distributionDF, settings)
                 edgeListDF.to_excel(writer, index=False, header=True, sheet_name='Edge List')
-    print(f"Finished writing topic distribution data to {output_dest}.")
+    print(f"Wrote topic distribution data to {output_dest}.")
 
 
 ### FIGURES ###
@@ -142,7 +142,7 @@ def get_moving_average_window_size(settings, df):
     dataset_size = df.shape[0]
     percentile = settings['moving_average_size']
     window_size = round((dataset_size * percentile) / 100)
-    print(f"\nApplying moving average window of {window_size} - {percentile}% of the dataset of size {dataset_size}")
+    print(f"Applying moving average window of {window_size} - {percentile}% of the dataset of size {dataset_size}")
     return window_size
 
 def save_individual_plot(settings, dft, topic, window_size, color, output_dir):
@@ -161,7 +161,7 @@ def save_individual_plot(settings, dft, topic, window_size, color, output_dir):
 
 def save_overlapping_plot(settings, dft, topic_group, window_size, output_dir):
     colors = getColors()
-    for topic in tqdm(topic_group):
+    for topic in tqdm(topic_group, desc=f"Plotting topic group {topic_group}"):
         df = dft.iloc[topic]
         # Smooth curve
         if window_size > 0:
@@ -184,12 +184,11 @@ def save_figures(settings, topics_df, words_df, n=5):
     output_dir = save_to_output(settings)
     window_size = get_moving_average_window_size(settings, topics_df)
     colors = getColors()
-    print("Plotting figures...")
-    for topic in tqdm(selected_topics):
+    for topic in tqdm(selected_topics, desc='Plotting individual charts'):
         save_individual_plot(settings, dft, topic, window_size, next(colors), output_dir)
     # Multiple topics
     if 'topicGroups' in settings:
         topic_groups = settings['topicGroups']
         for topic_group in topic_groups:
             save_overlapping_plot(settings, dft, topic_group, window_size, output_dir)
-    print(f"Finished plotting figures to {output_dir}.")
+    print(f"Figures plotted to {output_dir}.")
