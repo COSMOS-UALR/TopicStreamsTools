@@ -177,6 +177,9 @@ def save_overlapping_plot(settings, dft, topic_group, window_size, output_dir):
 
 def save_figures(settings, topics_df, words_df, n=5):
     selected_topics = words_df.head(n).index.values.tolist()
+    # Set dates as index for plotting if idFieldName was used
+    if 'idFieldName' in settings:
+        topics_df = topics_df.reset_index(drop=True).set_index(settings['dateFieldName'])
     dft = topics_df.transpose()
     output_dir = save_to_output(settings)
     window_size = get_moving_average_window_size(settings, topics_df)
