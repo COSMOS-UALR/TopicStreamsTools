@@ -5,10 +5,10 @@ JSON and CSV files are accepted. HOWEVER, you should use JSON to avoid the ambig
 
 ![Settings](/images/topicStreamExample.png)
 
-For now, the quickest way to use the tool is to modify the settings in main.py.
+For now, the quickest way to use the tool is to create a setting dictionary in settings.py (as below). And assign that object to the settings variable in main.py.
 
 ```python
-    settings = {
+    example_settings = {
         'datasetName': 'COVID',            
         'dataSource': 'myfile.json',
         'corpusFieldName': 'title',
