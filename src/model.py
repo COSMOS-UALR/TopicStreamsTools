@@ -1,7 +1,6 @@
 from collections import defaultdict
 from gensim import corpora
 from gensim import models
-from gensim.models import HdpModel
 from nltk.corpus import stopwords
 from tqdm import tqdm
 
@@ -43,6 +42,10 @@ def processData(raw_corpus, datasetName):
         save_tmp(datasetName, BOW_FILE, bow_corpus)
         save_tmp(datasetName, DICT_FILE, dictionary)
         return bow_corpus, dictionary
+
+def get_coherence(model, bow_corpus):
+    cm = models.coherencemodel.CoherenceModel(model=model, corpus=bow_corpus, coherence='u_mass')
+    return cm.get_coherence()
 
 def read_file(settings, dataFile):
     data_type = Path(dataFile).suffix
@@ -116,7 +119,7 @@ def create_model(settings, model_type, bow_corpus, dictionary):
     if model_type == 'LDA':
         model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary, minimum_probability=settings['minimumProbability'])
     elif model_type == 'HDP':
-        model = HdpModel(bow_corpus, dictionary)
+        model = models.HdpModel(bow_corpus, dictionary)
     else:
         print('Invalid model')
         return
@@ -134,4 +137,5 @@ def get_model(settings):
             print('Failed to load model - recreating.')
         print("Loading model and corpus...")
         model = create_model(settings, model_type, bow_corpus, dictionary)
+    print(f"Model coherence score: {get_coherence(model, bow_corpus)}")
     return model, bow_corpus, corpus_df
