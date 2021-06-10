@@ -1,7 +1,7 @@
 from gensim import models
 from tqdm import tqdm
 
-import pickle, os, random
+import pickle, os, random, pymysql
 import pandas as pd
 
 ## GLOBALS ###
@@ -83,6 +83,29 @@ def loadData(settings):
     dictionary = load_tmp(datasetName, DICT_FILE)
     corpus_df = load_df(settings, CORPUS_ID_FILE)
     return bow_corpus, dictionary, corpus_df
+
+### DATABASE ###
+
+def get_connection(db_settings):
+    connection = pymysql.connect(
+        host = db_settings['host'],
+        user = db_settings['user'],
+        password = db_settings['password'],
+        db = db_settings['db'],
+        charset = db_settings['charset'] if 'charset' in db_settings else 'utf8',
+        use_unicode = True,
+    )
+    return connection
+
+def get_query(db_settings):
+    query = ""
+    filePath = os.path.join(os.getcwd(), db_settings['query'])
+    if os.path.isfile(filePath):
+        with open(filePath, 'r', encoding='utf-8') as f:
+            query = f.read().strip('/r/n')
+    else:
+        query = db_settings['query']
+    return query
 
 ### OUTPUT ###
 

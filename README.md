@@ -27,6 +27,14 @@ For now, the quickest way to use the tool is to create a setting dictionary in s
         'nbFigures': 5,
         'topicGroups': [[2, 3]],
         'addLegend': True,
+        'db_settings': {
+            'host': 'server_ip',
+            'user': 'your_login',
+            'password': 'your_password',
+            'db': 'your_database',
+            'query': 'query.sql',
+            'encoding': 'utf-8',
+        }
     }
 ```
 
@@ -77,6 +85,9 @@ Specifies the encoding of the file. Optional, UTF-8 is the default.
 1. (JSON only) **json_orientation**
 Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
 https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
+
+1. **db_settings**
+If provided, this dictionary will override other data input settings and fetch data from the provided host. Adjust host address, login credentials, database, and encoding (optional, default = utf-8) accordingly. The query parameter can be either the name of a query file (txt or sql) located in the root of the project, or a simple string query as-is.
 
 1. **roundToDay**
 If defined and True, rounds dates to the nearest day. Better for larger corpora spanning over multiple months.

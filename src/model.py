@@ -8,7 +8,7 @@ from pathlib import Path
 import os, re, string
 import pandas as pd
 
-from .IO import loadData, load_model, save_df, save_model, save_tmp, BOW_FILE, DICT_FILE, CORPUS_ID_FILE
+from .IO import loadData, load_model, save_df, save_model, save_tmp, BOW_FILE, DICT_FILE, CORPUS_ID_FILE, get_connection, get_query
 
 def processData(raw_corpus, datasetName):
         def processCorpus(raw_corpus, min_token_len=3):
@@ -70,7 +70,11 @@ def read_file(settings, dataFile):
 def read_data(settings, dataSource):
     df = None
     dateFieldName = settings['dateFieldName']
-    if os.path.isdir(dataSource):
+    if 'db_settings' in settings:
+        query = get_query(settings['db_settings'])
+        db_connector = get_connection(settings['db_settings'])
+        df = pd.read_sql(query, db_connector)
+    elif os.path.isdir(dataSource):
         for filename in os.listdir(dataSource):
             file_df = read_file(settings, os.path.join(dataSource, filename))
             if df is None:
