@@ -123,6 +123,16 @@ def getEdgeListDF(distributionDF, settings):
     df.sort_values(['index', 'Topic'], inplace=True)
     return df.rename(columns={"index": settings['idFieldName']})
 
+def save_worksheet(settings, writer, worksheet, df, dir, write_index):
+    # Write to CSV if data is too large. Max excel sheet size is: 1048576, 16384
+    if df.shape[0] > 1048576:
+        fileName = f"{settings['model_type']}_{worksheet}_{settings['datasetName']}.csv"
+        path = os.path.join(dir, fileName)
+        df.to_csv(path, index=write_index, header=True)
+        print(f"The {worksheet} data was too large to write as an Excel worksheet and was written to {path} instead.")
+    else:
+        df.to_excel(writer, index=write_index, header=True, sheet_name=worksheet)
+
 def save_to_excel(settings, distributionDF, wordsDF):
     print("Writing to excel. This may take a few minutes for larger corpora.")
     fileName = f"{settings['model_type']}_TopicDistribution_{settings['datasetName']}.xlsx"
@@ -131,17 +141,10 @@ def save_to_excel(settings, distributionDF, wordsDF):
     with pd.ExcelWriter(output_dest) as writer:
         wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
         if 'distributionInWorksheet' in settings and settings['distributionInWorksheet']:
-            distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
+            save_worksheet(settings, writer, 'Topic Distribution', distributionDF, output_dir, True)
             if 'idFieldName' in settings:
                 edgeListDF = getEdgeListDF(distributionDF, settings)
-                # Write to CSV if data is too large. Max excel sheet size is: 1048576, 16384
-                if edgeListDF.shape[0] > 1048576:
-                    fileName = f"{settings['model_type']}_EdgeList_{settings['datasetName']}.csv"
-                    edge_output = os.path.join(output_dir, fileName)
-                    edgeListDF.to_csv(edge_output, index=False, header=True)
-                    print(f"EdgeList was too large for Excel and was written to {edge_output}.")
-                else:
-                    edgeListDF.to_excel(writer, index=False, header=True, sheet_name='Edge List')
+                save_worksheet(settings, writer, 'Edge List', edgeListDF, output_dir, False)
     print(f"Wrote topic distribution data to {output_dest}.")
 
 
