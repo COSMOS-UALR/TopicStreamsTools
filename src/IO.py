@@ -111,7 +111,14 @@ def save_to_excel(settings, distributionDF, wordsDF):
             distributionDF.to_excel(writer, index=True, header=True, sheet_name='Topic Distribution')
             if 'idFieldName' in settings:
                 edgeListDF = getEdgeListDF(distributionDF, settings)
-                edgeListDF.to_excel(writer, index=False, header=True, sheet_name='Edge List')
+                # Write to CSV if data is too large. Max excel sheet size is: 1048576, 16384
+                if edgeListDF.shape[0] > 1048576:
+                    fileName = f"{settings['model_type']}_EdgeList_{settings['datasetName']}.csv"
+                    edge_output = os.path.join(output_dir, fileName)
+                    edgeListDF.to_csv(edge_output, index=False, header=True)
+                    print(f"EdgeList was too large for Excel and was written to {edge_output}.")
+                else:
+                    edgeListDF.to_excel(writer, index=False, header=True, sheet_name='Edge List')
     print(f"Wrote topic distribution data to {output_dest}.")
 
 
