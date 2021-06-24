@@ -61,7 +61,7 @@ You will find a set of figures for the five most common topics, as well as an ex
 1. **datasetName**
 A recognizable name of your choice for your output.
 
-1. **dataSource**
+1. **dataSource** (optional if using db_settings)
 The name of the dataset file or folder to be used - not the path. The file or folder must be in the Data folder. If a folder is used, the tool will attempt to aggregate all the files in that folder. All files must use the same column format.
 
 1. **corpusFieldName**

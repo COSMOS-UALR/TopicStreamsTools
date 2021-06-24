@@ -67,9 +67,11 @@ def read_file(settings, dataFile):
     print(f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
-def read_data(settings, dataSource):
+def read_data(settings):
     df = None
     dateFieldName = settings['dateFieldName']
+    if 'dataSource' in settings:
+        dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
     if 'db_settings' in settings:
         query = get_query(settings['db_settings'])
         db_connector = get_connection(settings['db_settings'])
@@ -108,8 +110,7 @@ def get_data(settings):
         if not settings['reloadData']:
             print("Failure to find processed data. Reloading corpus.")
         print("Processing corpus...")
-        dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
-        df = read_data(settings, dataSource)
+        df = read_data(settings)
         raw_corpus = df[settings['corpusFieldName']]
         bow_corpus, dictionary = processData(raw_corpus, datasetName)
         # Dump id info to files for faster loading
