@@ -1,7 +1,3 @@
-
-import pandas as pd
-import os
-
 from src.IO import load_df, save_to_excel, save_figures, DISTRIB_FILE, WORDS_FILE
 from src.model import get_model
 from src.matrix import createMatrix
