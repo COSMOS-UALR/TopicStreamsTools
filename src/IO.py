@@ -192,7 +192,7 @@ def save_individual_plot(settings, dft, topic, window_size, color, output_dir):
     fig.savefig(os.path.join(output_dir, f'Topic_{topic}_{settings["moving_average_size"]}MA.png'))
     fig.clf()
 
-def save_overlapping_plot(settings, dft, topic_group, window_size, output_dir):
+def save_overlapping_plot(settings, dft, topic_group, window_size, output_dir, filename = None):
     colors = getColors()
     for topic in tqdm(topic_group, desc=f"Plotting topic group {topic_group}"):
         df = dft.iloc[topic]
@@ -203,9 +203,11 @@ def save_overlapping_plot(settings, dft, topic_group, window_size, output_dir):
     if 'addLegend' in settings and settings['addLegend'] is True:
         box = plot.get_position()
         plot.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 1])
-        plot.legend(bbox_to_anchor=(0.5, -0.170), loc='upper center', ncol=5)
+        plot.legend(bbox_to_anchor=(0.5, -0.215), loc='upper center', ncol=5)
     fig = plot.get_figure()
-    fig.savefig(os.path.join(output_dir, f'Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA.png'))
+    if filename is None:
+        filename = f'Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA.png'
+    fig.savefig(os.path.join(output_dir, filename))
     fig.clf()
 
 def save_figures(settings, topics_df, words_df, n=5):
@@ -220,6 +222,10 @@ def save_figures(settings, topics_df, words_df, n=5):
     for topic in tqdm(selected_topics, desc='Plotting individual charts'):
         save_individual_plot(settings, dft, topic, window_size, next(colors), output_dir)
     # Multiple topics
+    # Save top topics by default
+    top_topics_filename = f'Top_{n}_Topics_{settings["moving_average_size"]}MA.png'
+    save_overlapping_plot(settings, dft, selected_topics, window_size, output_dir, top_topics_filename)
+    # Optional - save specified topic groups
     if 'topicGroups' in settings:
         topic_groups = settings['topicGroups']
         for topic_group in topic_groups:
