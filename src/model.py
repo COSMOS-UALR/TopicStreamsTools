@@ -59,6 +59,8 @@ def read_file(settings, dataFile):
         df = df[selected_columns]
     elif data_type == '.csv':
         df = pd.read_csv(dataFile, na_filter=False, usecols=selected_columns)
+    elif data_type == '.xlsx':
+        df = pd.read_excel(dataFile, na_filter=False, usecols=selected_columns)
     else:
         raise Exception
     total_items = df.shape[0]

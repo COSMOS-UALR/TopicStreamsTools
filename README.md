@@ -1,7 +1,7 @@
 # TopicStreamsTools
 
 This tool provides a quick way to generate topic streams for a given corpus.
-JSON and CSV files are accepted. HOWEVER, you should use JSON to avoid the ambiguous separator problem on large text fields. If the script is failing with a CSV file try with a JSON version.
+JSON, Excel, and CSV files are accepted. However it is recommended to avoid CSV to limit ambiguous separators on large text fields. If the script is failing with a CSV file try with a JSON version.
 
 ![Settings](/images/topicStreamExample.png)
 
@@ -40,7 +40,7 @@ For now, the quickest way to use the tool is to create a setting dictionary in s
 
 ## Instructions
 
-1. Move your dataset (CSV, JSON, or subfolder) to the Data folder.
+1. Move your dataset (file or subfolder) to the Data folder.
 2. Make sure you have installed the requirements:
 ```python
     pip install -r requirements.txt
