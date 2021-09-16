@@ -1,9 +1,8 @@
-cmb_yt_settings = {
-    'datasetName': 'Combined_comments',
-    'dataSource': 'yt_comments',
+domestic_extremism_comments_settings = {
+    'datasetName': 'DE_comments',
+    'dataSource': 'YT_Comments_November_1_2020_to_March_1_2021_DE.csv',
     'corpusFieldName': 'comment_displayed',
     'dateFieldName': 'published_date',
-    'json_orientation': 'columns',
     'roundToDay': False,
     # Advanced settings
     'numberTopics': 20,
@@ -13,7 +12,74 @@ cmb_yt_settings = {
     'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     'minimumProbability': 0.00000001,
     'nbFigures': 10,
-    'topicGroups': [[18, 15, 1, 7, 9, 5, 0, 8, 11, 3]],
+    'addLegend': True,
+}
+
+domestic_extremism_related_videos_settings = {
+    'datasetName': 'DE_related_videos',
+    'dataSource': 'YT_Related_Videos_November_1_2020_to_March_1_2021_DE.csv',
+    'corpusFieldName': 'title',
+    'dateFieldName': 'published_date',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_average_size': 5,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+    'addLegend': True,
+}
+
+domestic_extremism_videos_settings = {
+    'datasetName': 'DE_videos',
+    'dataSource': 'YT_Videos_November_1_2020_to_March_1_2021_DE.csv',
+    'corpusFieldName': 'video_title',
+    'dateFieldName': 'published_date',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_average_size': 5,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+    'addLegend': True,
+}
+
+domestic_extremism_twitter_settings = {
+    'datasetName': 'DE_twitter',
+    'dataSource': 'Twitter_Posts_November_1_2020_to_March_1_2021_DE.csv',
+    'corpusFieldName': 'text',
+    'dateFieldName': 'created_at',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_average_size': 5,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
+    'addLegend': True,
+}
+
+domestic_extremism_parler_settings = {
+    'datasetName': 'DE_parler',
+    'dataSource': 'parler_posts2.csv',
+    'corpusFieldName': 'body',
+    'dateFieldName': 'created_at',
+    'roundToDay': False,
+    # Advanced settings
+    'numberTopics': 20,
+    'numberWords': 10,
+    'moving_average_size': 5,
+    'reloadData': False,                # Will re-read your input file and train a new model with the updated data
+    'retrainModel': False,              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    'minimumProbability': 0.00000001,
+    'nbFigures': 10,
     'addLegend': True,
 }
 
