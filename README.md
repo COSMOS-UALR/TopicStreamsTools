@@ -5,54 +5,54 @@ JSON, Excel, and CSV files are accepted. However it is recommended to avoid CSV 
 
 ![Settings](/images/topicStreamExample.png)
 
-For now, the quickest way to use the tool is to create a setting dictionary in settings.py (as below). And assign that object to the settings variable in main.py.
-
-```python
-    example_settings = {
-        'datasetName': 'COVID',            
-        'dataSource': 'myfile.json',
-        'corpusFieldName': 'title',
-        'dateFieldName': 'debunking_date',
-        'encoding': 'utf-8',
-        'json_orientation': 'records',
-        'roundToDay': True,
-        'reloadData': False,               # Will re-read input file and train a new model with the updated data
-        'model_type': 'LDA',
-        # Advanced settings
-        'numberTopics': 20,
-        'numberWords': 10,
-        'moving_average_size': 5,
-        'retrainModel': False,             # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
-        'minimumProbability': 0.00000001,
-        'nbFigures': 5,
-        'topicGroups': [[2, 3]],
-        'addLegend': True,
-        'db_settings': {
-            'host': 'server_ip',
-            'user': 'your_login',
-            'password': 'your_password',
-            'db': 'your_database',
-            'query': 'query.sql',
-            'encoding': 'utf-8',
-        }
-    }
-```
 
 ## Instructions
 
-1. Move your dataset (file or subfolder) to the Data folder.
-2. Make sure you have installed the requirements:
+1. Place the dataset (file or subfolder) to the Data folder.
+2. Install the script's requirements:
 ```python
     pip install -r requirements.txt
 ```
-3. Open main.py in your preferred IDE and , referring to the documentation below, update your settings accordingly. The first four parameters must be updated, the rest can be left as is.
+3. Update `config.yml` according to your dataset and needs (more information below).
 4. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes. If you encounter errors, check first that the encoding of your file is correct and you have specified the correct JSON orientation if using.
-5. Open the Output/{datasetName} folder to find your results.
+5. Open the Output/LDA/{datasetName} folder to find your results.
+
+To adapt the tool to your needs, adjust the `config.yml` file, detailed description [below](#settings-info). Typically, the first four parameters must be updated with each different dataset. The rest can be left as is and will run.
+
+```yaml
+settings:
+    datasetName: COVID_Misinfo
+    dataSource: KnownMisinfo.xlsx - Table1.csv
+    corpusFieldName: title
+    dateFieldName: debunking_date
+    roundToDay: False
+    model_type: LDA
+    # Advanced settings
+    numberTopics: 20
+    numberWords: 10
+    moving_average_size: 5
+    reloadData: False                # Will re-read your input file and train a new model with the updated data
+    retrainModel: False              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    minimumProbability: 0.00000001
+    nbFigures: 5
+    # topicGroups: [[2, 13, 15]]
+    minimumProbability: 0.00000001
+    distributionInWorksheet: False
+    addLegend: True
+    db_settings:
+            host: <server_ip>
+            user: <your_login>
+            password: <your_password>
+            db: <your_database>
+            query: query.sql
+            encoding: utf-8
+```
 
 ## Output
 
 You can find the result of the analysis in the Output folder, in the subfolder you specified in the 'datasetName' parameter.
 You will find a set of figures for the five most common topics, as well as an excel sheet containing the topic words and the total average topic distribution data for each day. Advanced users can use this data to plot graphs.
+
 ![Text Field](/images/sheetTab.png)
 ![Text Field](/images/topicDistribution.png)
 
@@ -66,14 +66,17 @@ The name of the dataset file or folder to be used - not the path. The file or fo
 
 1. **corpusFieldName**
 The name of the field the tool will use to create a model for analysis. Typically, this will be the most verbose field of your dataset.
+
 ![Text Field](/images/textField.png)
 
 1. **dateFieldName** (formerly idFieldName)
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
+
 ![ID Field](/images/idField.png)
 
 1. (Optional) **idFieldName**
 Individual identifier such as a blog post ID, video ID, etc. If distributionInWorksheet is also set to true, this will generate an additional excel sheet in the form of an edge list. This is useful for analysts wishing to filter by individual topics to match particular items to a topic for further study.
+
 ![ID Field](/images/edgeList.png)
 
 1. (Optional) **model_type**
