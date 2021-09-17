@@ -79,18 +79,8 @@ Individual identifier such as a blog post ID, video ID, etc. If distributionInWo
 
 ![ID Field](/images/edgeList.png)
 
-* (Optional) **model_type**
+* **model_type**
 Type of topic model to use. Options: LDA, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
-
-* (Optional) **encoding**
-Specifies the encoding of the file. Optional, UTF-8 is the default.
-
-* (JSON only) **json_orientation**
-Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
-https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
-
-* (Optional) **db_settings**
-If provided, this dictionary will override other data input settings and fetch data from the provided host. Adjust host address, login credentials, database, and encoding (optional, default = utf-8) accordingly. The query parameter can be either the name of a query file (txt or sql) located in the root of the project, or a simple string query as-is.
 
 * **roundToDay**
 If defined and True, rounds dates to the nearest day. Better for larger corpora spanning over multiple months.
@@ -117,26 +107,38 @@ Topics with a probability lower than this threshold will be filtered out.
 * **moving_average_size**
 Percentile value, indicates what percentage of the dataset size to use as a moving average window to smooth the resulting figures. Values between 1 and 15 are recommended but you may need to experiment with different numbers. Note that larger values may make figures lose resolution. Depending on the composition of your dataset some dates may get lost if the value is too high. Set to 0 to forego using a moving average.
 
-* (Optional) **start_date**
+### Optional Settings
+
+* (JSON only) **json_orientation**
+Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:
+https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
+
+* **db_settings**
+If provided, this dictionary will override other data input settings and fetch data from the provided host. Adjust host address, login credentials, database, and encoding (optional, default = utf-8) accordingly. The query parameter can be either the name of a query file (txt or sql) located in the root of the project, or a simple string query as-is.
+
+* **encoding**
+Specifies the encoding of the file. Optional, UTF-8 is the default.
+
+* **start_date**
 While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field. Example value: '2020-02-01'.
 
-* (Optional) **end_date**
+* **end_date**
 Same as above for the end date. Example value: '2020-03-01'.
 
-* (Optional) **lang**
+* **lang**
 Optional tuple where the first item is the name of the language field and the second is the language to keep.
 
-* (Optional) **topicGroups**
+* **topicGroups**
 Optional list of topics to print on one graph. First run on your dataset then check what resulting figures you would like to group up.
 
-* (Optional) **distributionInWorksheet**
+* **distributionInWorksheet**
 If True, will append an excel sheet with the raw distribution data for each topic. If idFieldName is also defined, will append an additional sheet with id fields matched to topics.
 
-* (Optional) **addLegend**
+* **addLegend**
 Add a legend to any overlapping plot.
 
-* (Optional) **x_label**
+* **x_label**
 Add label to the x axis.
 
-* (Optional) **y_label**
+* **y_label**
 Add label to the y axis.
