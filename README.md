@@ -25,16 +25,16 @@ settings:
     dataSource: KnownMisinfo.xlsx - Table1.csv
     corpusFieldName: title
     dateFieldName: debunking_date
-    roundToDay: False
-    model_type: LDA
     # Advanced settings
+    model_type: LDA
+    roundToDay: False
     numberTopics: 20
     numberWords: 10
+    nbFigures: 5
     moving_average_size: 5
     reloadData: False                # Will re-read your input file and train a new model with the updated data
     retrainModel: False              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     minimumProbability: 0.00000001
-    nbFigures: 5
     # topicGroups: [[2, 13, 15]]
     minimumProbability: 0.00000001
     distributionInWorksheet: False
