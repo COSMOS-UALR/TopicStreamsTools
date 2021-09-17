@@ -114,7 +114,7 @@ If provided, this dictionary will override other data input settings and fetch d
 * **encoding**
 Specifies the encoding of the file. Optional, UTF-8 is the default.
 
-* (Optional) **idFieldName**
+* **idFieldName**
 Individual identifier such as a blog post ID, video ID, etc. If distributionInWorksheet is also set to true, this will generate an additional excel sheet in the form of an edge list. This is useful for analysts wishing to filter by individual topics to match particular items to a topic for further study.
 
 ![ID Field](/images/edgeList.png)
