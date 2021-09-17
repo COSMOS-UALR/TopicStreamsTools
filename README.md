@@ -72,12 +72,7 @@ The name of the field the tool will use to create a model for analysis. Typicall
 * **dateFieldName** (formerly idFieldName)
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 
-![ID Field](/images/idField.png)
-
-* (Optional) **idFieldName**
-Individual identifier such as a blog post ID, video ID, etc. If distributionInWorksheet is also set to true, this will generate an additional excel sheet in the form of an edge list. This is useful for analysts wishing to filter by individual topics to match particular items to a topic for further study.
-
-![ID Field](/images/edgeList.png)
+![Date Field](/images/idField.png)
 
 * **model_type**
 Type of topic model to use. Options: LDA, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
@@ -118,6 +113,11 @@ If provided, this dictionary will override other data input settings and fetch d
 
 * **encoding**
 Specifies the encoding of the file. Optional, UTF-8 is the default.
+
+* (Optional) **idFieldName**
+Individual identifier such as a blog post ID, video ID, etc. If distributionInWorksheet is also set to true, this will generate an additional excel sheet in the form of an edge list. This is useful for analysts wishing to filter by individual topics to match particular items to a topic for further study.
+
+![ID Field](/images/edgeList.png)
 
 * **start_date**
 While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field. Example value: '2020-02-01'.
