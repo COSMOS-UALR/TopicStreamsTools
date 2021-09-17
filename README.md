@@ -95,9 +95,6 @@ If provided, this dictionary will override other data input settings and fetch d
 * **roundToDay**
 If defined and True, rounds dates to the nearest day. Better for larger corpora spanning over multiple months.
 
-* **reloadData**
-Make sure this is set to True is your data has changed. Otherwise the program will use stored information and the output will stay the same.
-
 * **numberTopics**
 The total number of topics you would like your corpus to be divided into. Experiment with this. Ten or 20 is usually a good number but larger datasets may obtain good results with 50 topics.
 
@@ -105,23 +102,26 @@ The total number of topics you would like your corpus to be divided into. Experi
 The total number of words you would like to represent each topic. For example, if numberWords = 10 this will be the result:
 ![Words](/images/wordCount.png)
 
-* **moving_average_size**
-Percentile value, indicates what percentage of the dataset size to use as a moving average window to smooth the resulting figures. Values between 1 and 15 are recommended but you may need to experiment with different numbers. Note that larger values may make figures lose resolution. Depending on the composition of your dataset some dates may get lost if the value is too high. Set to 0 to forego using a moving average.
+* **nbFigures**
+Number of figures generated to the output folder. Keep this number under the number of topics.
+
+* **reloadData**
+Make sure this is set to True is your data has changed. Otherwise the program will use stored information and the output will stay the same.
 
 * **retrainModel**
 Use the same data but retrain the modal. This is useful if you are an advanced user making changes to the model settings such as minimumProbability.
+
+* **minimumProbability**
+Topics with a probability lower than this threshold will be filtered out.
+
+* **moving_average_size**
+Percentile value, indicates what percentage of the dataset size to use as a moving average window to smooth the resulting figures. Values between 1 and 15 are recommended but you may need to experiment with different numbers. Note that larger values may make figures lose resolution. Depending on the composition of your dataset some dates may get lost if the value is too high. Set to 0 to forego using a moving average.
 
 * (Optional) **start_date**
 While the model is trained on the entire corpus for performance, you may want to focus on a specific period when creating your topic distribution matrix. This will only select objects that start from this data in your specified id field. Example value: '2020-02-01'.
 
 * (Optional) **end_date**
 Same as above for the end date. Example value: '2020-03-01'.
-
-* **minimumProbability**
-Topics with a probability lower than this threshold will be filtered out.
-
-* **nbFigures**
-Number of figures generated to the output folder. Keep this number under the number of topics.
 
 * (Optional) **lang**
 Optional tuple where the first item is the name of the language field and the second is the language to keep.
