@@ -6,18 +6,21 @@ JSON, Excel, and CSV files are accepted. However it is recommended to avoid CSV 
 ![Settings](/images/topicStreamExample.png)
 
 
-## Instructions
+## Quick Start
 
-1. Place the dataset (file or subfolder) to the Data folder.
-2. Install the script's requirements:
+To run the script with the sample dataset:
+1. Install the script's requirements:
 ```python
     pip install -r requirements.txt
 ```
-3. Update `config.yml` according to your dataset and needs (more information below).
-4. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes. If you encounter errors, check first that the encoding of your file is correct and you have specified the correct JSON orientation if using.
-5. Open the Output/LDA/{datasetName} folder to find your results.
+2. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes. If you encounter errors, check first that the encoding of your file is correct and you have specified the correct JSON orientation if using.
+3. Open the Output/LDA/{datasetName} folder to find your results.
 
-To adapt the tool to your needs, adjust the `config.yml` file, detailed description [below](#settings-info). Typically, the first four parameters must be updated with each different dataset. The rest can be left as is and will run.
+## Using custom datasets
+
+1. Move dataset to the Data folder.
+    * This can be a single file, or a folder with multiple files with identical format.
+2. Update the `config.yml` file according to your dataset and needs, detailed description [below](#settings-info). Typically, the first four parameters must be updated with each different dataset. The rest can be left as is and will run.
 
 ```yaml
 settings:
