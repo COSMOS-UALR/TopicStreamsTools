@@ -1,6 +1,7 @@
 import yaml
 
 from .topicModel.topicModel import TopicModelNode
+from .engagementBehavior.engagementBehavior import EngagementBehaviorNode
 
 class Framework:
 
@@ -12,8 +13,10 @@ class Framework:
             self.nodes = self.routing['nodes']
             self.node_1 = TopicModelNode(self.project_name, self.nodes[0])
             self.node_2 = TopicModelNode(self.project_name, self.nodes[1])
+            self.node_3 = EngagementBehaviorNode(self.project_name, self.nodes[2])
 
     def run(self):
         # self.node_1.run()
-        self.node_2.run()
+        # self.node_2.run()
+        self.node_3.run()
         return

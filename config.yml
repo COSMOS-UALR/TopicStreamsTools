@@ -51,8 +51,14 @@ routing:
             folder: pipeline_comments_results
             nbFigures: 20
             moving_average_size: 5
-    # - node_3:
-    #   node_type: engagement
+    - node_3:
+        node_type: channel-engagement
+        threshold: 0.4
+        start_date: '2018-01-01'
+        channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
+        filters:
+          out:
+            folder: engagement_results
     # - node_4:
     #   node_type: comment_behavior
 
