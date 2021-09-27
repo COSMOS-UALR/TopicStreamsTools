@@ -8,7 +8,6 @@ from tqdm import tqdm
 
 from ..dataManager import fileExists, getFilePath, load_df, load_tmp, save_df, save_tmp
 
-
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
 CORPUS_ID_FILE = 'corpus_id.pkl'
@@ -44,26 +43,29 @@ def getProcessedData(settings, df):
 
 def processData(raw_corpus):
     """Process text corpus to obtain bag of words and tokens dictionary."""
+
     def processCorpus(raw_corpus, min_token_len=3):
-            stoplist = set(stopwords.words('english'))
-            texts = []
-            for document in tqdm(raw_corpus, desc='Normalizing corpus'):
-                    # lowercase the document string and replace all newlines and tabs with spaces.
-                    lowercase_string = document.lower().replace('\n', ' ').replace('\t', ' ')
-                    # replace all punctuation with spaces. (note: this includes punctuation that might occur inside a word).
-                    punc_pattern = r'[{}]'.format(string.punctuation)
-                    no_punc_string = re.sub(punc_pattern, ' ', lowercase_string)
-                    # replace all numbers and non-word chars with spaces. (note: this may not always be a good idea depending on use case).
-                    no_nums_string = re.sub(r'[\d\W_]', ' ', no_punc_string)
-                    # split tokens on spaces, trim any space, stop tokens if len() < min_token_len or if in stoplist.
-                    texts.append([token.strip() for token in no_nums_string.split(' ') if len(token.strip()) >= min_token_len and token.strip() not in stoplist])
-            # Count word frequencies
-            frequency = defaultdict(int)
-            for text in tqdm(texts, desc='Counting word frequency'):
-                    for token in text:
-                            frequency[token] += 1
-            # Only keep words that appear more than once
-            return [[token for token in text if frequency[token] > 1] for text in tqdm(texts, desc='Filtering out unique tokens')]
+        stoplist = set(stopwords.words('english'))
+        texts = []
+        for document in tqdm(raw_corpus, desc='Normalizing corpus'):
+            # lowercase the document string and replace all newlines and tabs with spaces.
+            lowercase_string = document.lower().replace('\n', ' ').replace('\t', ' ')
+            # replace all punctuation with spaces. (note: this includes punctuation that might occur inside a word).
+            punc_pattern = r'[{}]'.format(string.punctuation)
+            no_punc_string = re.sub(punc_pattern, ' ', lowercase_string)
+            # replace all numbers and non-word chars with spaces. (note: this may not always be a good idea depending on use case).
+            no_nums_string = re.sub(r'[\d\W_]', ' ', no_punc_string)
+            # split tokens on spaces, trim any space, stop tokens if len() < min_token_len or if in stoplist.
+            texts.append([token.strip() for token in no_nums_string.split(' ') if
+                          len(token.strip()) >= min_token_len and token.strip() not in stoplist])
+        # Count word frequencies
+        frequency = defaultdict(int)
+        for text in tqdm(texts, desc='Counting word frequency'):
+            for token in text:
+                frequency[token] += 1
+        # Only keep words that appear more than once
+        return [[token for token in text if frequency[token] > 1] for text in
+                tqdm(texts, desc='Filtering out unique tokens')]
 
     processed_corpus = processCorpus(raw_corpus)
     print("Creating dictionary. This may take a few minutes depending on the size of the corpus.")

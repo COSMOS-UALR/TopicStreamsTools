@@ -11,6 +11,7 @@ def saveModel(settings, file, model):
     checkPathExists(file_path)
     model.save(file_path)
 
+
 ### Nodes ###
 
 
@@ -77,8 +78,8 @@ def getColors():
         yield color
     # Generate random colors once first 10 have been used
     while True:
-        r = lambda: random.randint(0,255)
-        hex_number = '#%02X%02X%02X' % (r(),r(),r())
+        r = lambda: random.randint(0, 255)
+        hex_number = '#%02X%02X%02X' % (r(), r(), r())
         yield hex_number
 
 
@@ -105,7 +106,7 @@ def saveIndividualPlot(settings, dft, topic, window_size, color, output_dir):
     fig.clf()
 
 
-def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, filename = None):
+def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, filename=None):
     colors = getColors()
     for topic in tqdm(topic_group, desc=f"Plotting topic group {topic_group}"):
         df = dft.iloc[topic]

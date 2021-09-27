@@ -13,25 +13,21 @@ CHANNELS_FILE = 'CHANNELS.pkl'
 
 
 def readData(settings):
-    raw_data = load_df(settings, CHANNELS_FILE)
-    if raw_data is None:
-        raw_data = queryDB(settings)
-    total_videos = []
-    total_videos.append(raw_data['daily_videos'][0])
-    total_comments = []
-    total_comments.append(raw_data['daily_comments'][0])
-    daily_views = []
-    daily_views.append(raw_data['total_views'][0])
-    daily_subscribers = []
-    daily_subscribers.append(raw_data['total_subscribers'][0])
-    for i in range(raw_data.shape[0]-1):
-        videos_total = total_videos[i] + raw_data['daily_videos'][i+1]
-        comments_total = total_comments[i] + raw_data['daily_comments'][i+1]
+    # raw_data = load_df(settings, CHANNELS_FILE)
+    # if raw_data is None:
+    raw_data = queryDB(settings)
+    total_videos = [raw_data['daily_videos'][0]]
+    total_comments = [raw_data['daily_comments'][0]]
+    daily_views = [raw_data['total_views'][0]]
+    daily_subscribers = [raw_data['total_subscribers'][0]]
+    for i in range(raw_data.shape[0] - 1):
+        videos_total = total_videos[i] + raw_data['daily_videos'][i + 1]
+        comments_total = total_comments[i] + raw_data['daily_comments'][i + 1]
         total_videos.append(videos_total)
         total_comments.append(comments_total)
-    for j in range(1,raw_data.shape[0]):
-        views_daily = raw_data['total_views'][j] - raw_data['total_views'][j-1]
-        subs_daily = raw_data['total_subscribers'][j] - raw_data['total_subscribers'][j-1]
+    for j in range(1, raw_data.shape[0]):
+        views_daily = raw_data['total_views'][j] - raw_data['total_views'][j - 1]
+        subs_daily = raw_data['total_subscribers'][j] - raw_data['total_subscribers'][j - 1]
         daily_views.append(views_daily)
         daily_subscribers.append(subs_daily)
     raw_data['total_videos'] = total_videos
@@ -47,7 +43,7 @@ def readData(settings):
     try:
         thresh
     except:
-        thresh = 0  
+        thresh = 0
     try:
         trunc_data = raw_data.truncate(before=thresh, axis=0)
         trunc_data
@@ -56,7 +52,7 @@ def readData(settings):
         for i in range(raw_data.shape[0]):
             index_list.append(i)
         raw_data['date'] = raw_data.index
-        raw_data.index= index_list
+        raw_data.index = index_list
         trunc_data = raw_data.truncate(before=thresh, axis=0)
     trunc_data.reset_index(inplace=True, drop=True)
     return trunc_data
@@ -73,9 +69,9 @@ def queryDB(settings):
     query = f'SELECT {",".join(columns)} FROM {table} WHERE channel_id = "{channel_id}"'
     db_connector = get_connection(DB_SETTINGS)
     df = pd.read_sql(query, db_connector, columns=columns)
-    df.rename(columns={'total_videos': 'total_videos_in_db'}, inplace =True)
+    df.rename(columns={'total_videos': 'total_videos_in_db'}, inplace=True)
     df = process_data(channel_id, df)
-    df.rename(columns={'extracted_date': 'date'}, inplace =True)
+    df.rename(columns={'extracted_date': 'date'}, inplace=True)
     print(df.head())
     df.dropna(how='any', thresh=200, axis=1, inplace=True)
     # print(f"Filtering out na values from {df.shape[0]} entries.")
@@ -98,7 +94,7 @@ def process_data(channel_id, channel_df):
     video_df = video_df.groupby(pd.Grouper(key='published_date', axis=0, freq='D')).count()
     video_df.reset_index(inplace=True)
     # video_df = video_df.droplevel(1, axis=1)
-    video_df.rename(columns={'published_date': 'date', 'video_id': 'daily_videos'}, inplace =True)
+    video_df.rename(columns={'published_date': 'date', 'video_id': 'daily_videos'}, inplace=True)
     channel_df = pd.merge(channel_df, video_df, how='left', left_on='extracted_date', right_on='date')
     channel_df.drop('date', axis=1, inplace=True)
 
@@ -113,8 +109,8 @@ def process_data(channel_id, channel_df):
     comments_df['published_date'] = pd.to_datetime(comments_df['published_date']).dt.tz_localize(None)
     comments_df = comments_df.groupby(pd.Grouper(key='published_date', axis=0, freq='D')).count()
     comments_df.reset_index(inplace=True)
-    comments_df.rename(columns={'published_date': 'date', 'comment_id': 'daily_comments'}, inplace =True)
+    comments_df.rename(columns={'published_date': 'date', 'comment_id': 'daily_comments'}, inplace=True)
     channel_df = pd.merge(channel_df, comments_df, how='left', left_on='extracted_date', right_on='date')
     channel_df.drop('date', axis=1, inplace=True)
-    
+
     return channel_df

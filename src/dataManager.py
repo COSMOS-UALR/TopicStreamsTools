@@ -5,9 +5,9 @@ import pickle
 import pymysql
 import os
 
-
 PROCESSED_DATA_FOLDER = "processed_data"
 OUTPUT_FOLDER = "Output"
+
 
 ### GENERAL ###
 
@@ -27,6 +27,7 @@ def load_file(file_path):
         return None
     with open(file_path, 'rb') as f:
         return pickle.load(f)
+
 
 def getFilePath(settings, file, skip_node=False):
     datasetName = settings['datasetName']
@@ -72,6 +73,7 @@ def load_tmp(settings, suffix):
     source = getFilePath(settings, suffix, skip_node=True)
     return load_file(source)
 
+
 ### DATAFRAMES ###
 
 def save_df(settings, file, df):
@@ -96,12 +98,12 @@ def load_df(settings, file):
 
 def get_connection(db_settings):
     connection = pymysql.connect(
-        host = db_settings['host'],
-        user = db_settings['user'],
-        password = db_settings['password'],
-        db = db_settings['db'],
-        charset = db_settings['charset'] if 'charset' in db_settings else 'utf8',
-        use_unicode = True,
+        host=db_settings['host'],
+        user=db_settings['user'],
+        password=db_settings['password'],
+        db=db_settings['db'],
+        charset=db_settings['charset'] if 'charset' in db_settings else 'utf8',
+        use_unicode=True,
     )
     return connection
 
@@ -136,7 +138,8 @@ def read_file(settings, dataFile):
     total_items = df.shape[0]
     df.dropna(inplace=True)
     nan_items = total_items - df.shape[0]
-    print(f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
+    print(
+        f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
 
@@ -145,7 +148,7 @@ def read_data(settings):
     dateFieldName = settings['dateFieldName']
     if 'verbose' in settings and settings['verbose']:
         # hack, use custom level
-        log.basicConfig(format="%(message)s", level=log.ERROR)
+        log.basicConfig(format="%(message)s", level=log.INFO)
     if 'dataSource' in settings:
         dataSource = os.path.join(os.getcwd(), 'Data', settings['dataSource'])
     if 'db_settings' in settings:
@@ -162,14 +165,15 @@ def read_data(settings):
     else:
         df = read_file(settings, dataSource)
     if 'lang' in settings:
-        log.error(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
+        log.info(f"Filtering language. Only retaining {settings['lang'][1]} entries.")
         df = df[df[settings['lang'][0]] == settings['lang'][1]]
-    log.error(f"Loaded {df.shape[0]} items.")
-    log.error("Dataset preview:")
-    log.error(df.head())
-    log.error("Fields:")
-    log.error(df.columns.values)
-    #Convert to datetime format (useful to filter by date) and round to nearest day
+    log.info(f"Loaded {df.shape[0]} items.")
+    log.info("Dataset preview:")
+    log.info(df.head())
+    log.info("Fields:")
+    log.info(df.columns.values)
+    log.basicConfig(format="%(message)s", level=log.ERROR)
+    # Convert to datetime format (useful to filter by date) and round to nearest day
     if 'roundToDay' in settings and settings['roundToDay'] is True:
         df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName])).dt.round("D")
     else:
