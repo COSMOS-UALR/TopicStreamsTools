@@ -10,7 +10,6 @@ from ..dataManager import load_df, load_tmp, save_df, read_data, save_tmp
 from .input import getProcessedData, loadData, loadModel
 from .output import getIDsInTopics, saveModel, saveFigures, saveToExcel
 
-
 class TopicModelNode:
     def __init__(self, project_name, settings) -> None:
         self.DISTRIB_FILE = 'distribDataframe.pkl'
@@ -21,6 +20,7 @@ class TopicModelNode:
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
         self.MODEL_FILE = f"{self.settings['model']}_model"
+
 
     def run(self):
         settings = self.settings
@@ -42,6 +42,7 @@ class TopicModelNode:
             save_tmp(settings, self.IDS_FILE, filtered_ids)
         print(f"NODE {settings['node']} END")
 
+
     def loadFromFile(self, settings):
         print('Attempting to load Dataframes...')
         distributionDF = load_df(settings, self.DISTRIB_FILE)
@@ -60,6 +61,7 @@ class TopicModelNode:
             print('Calculating Dataframes...')
             distributionDF, wordsDF = self.createMatrix(settings, model, bow_corpus, corpus_df)
         return distributionDF, wordsDF
+
 
     def loadFromNode(self, settings):
         print('Attempting to load Dataframes...')
@@ -85,16 +87,17 @@ class TopicModelNode:
             distributionDF, wordsDF = self.createMatrix(settings, model, bow_corpus, corpus_df)
         return distributionDF, wordsDF
 
+
     def getCoherence(self, model, bow_corpus):
         cm = models.coherencemodel.CoherenceModel(model=model, corpus=bow_corpus, coherence='u_mass')
         return cm.get_coherence()
+
 
     def createModel(self, settings, model_type, bow_corpus, dictionary):
         print(f"Training {model_type} model. This may take several minutes depending on the size of the corpus.")
         model = None
         if model_type == 'LDA':
-            model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary,
-                                    minimum_probability=settings['minimumProbability'])
+            model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary, minimum_probability=settings['minimumProbability'])
         elif model_type == 'HDP':
             model = models.HdpModel(bow_corpus, dictionary)
         else:
@@ -102,6 +105,7 @@ class TopicModelNode:
             return
         saveModel(settings, self.MODEL_FILE, model)
         return model
+
 
     def get_model(self, settings, bow_corpus, dictionary):
         model = None
@@ -115,6 +119,7 @@ class TopicModelNode:
             model = self.createModel(settings, model_type, bow_corpus, dictionary)
         print(f"Model coherence score: {self.getCoherence(model, bow_corpus)}")
         return model
+
 
     def get_dominant_topics_counts_and_distribution(self, doc_topics):
         """
@@ -145,6 +150,7 @@ class TopicModelNode:
         assert np.around(np.sum(dominant_topic_dist), 5) == 1.0
         return dominant_topic_counts, dominant_topic_dist
 
+
     def print_dominant_topics_by_frequency(self, dominant_topic_counts, dominant_topic_dist):
         """
         Function shows a simple way of printing useful information about the most frequent dominant topics.
@@ -159,8 +165,8 @@ class TopicModelNode:
         # Print the topic index, the number of documents with the dominant topic, and the proportion of documents.
         for topic_index in ordered_topic_indices:
             print('topic ' + str(topic_index)
-                  + ', count=' + str(dominant_topic_counts[topic_index])
-                  + ', proportion=' + str(np.around(dominant_topic_dist[topic_index], 4)))
+                + ', count=' + str(dominant_topic_counts[topic_index])
+                + ', proportion=' + str(np.around(dominant_topic_dist[topic_index], 4)))
         print()
 
     def get_doc_topic_distributions(self, settings, model, corpus):
@@ -169,22 +175,22 @@ class TopicModelNode:
         #    topics_nos = [x[0] for x in shown_topics ]
         #    weights = [ sum([item[1] for item in shown_topics[topicN][1]]) for topicN in topics_nos ]
         #    df = pd.DataFrame({'topic_id' : topics_nos, 'weight' : weights})
-        # FILTER BY DATES HERE
+        #FILTER BY DATES HERE
         for doc in tqdm(corpus, desc='Generating topic distribution data'):
             doc_dist = model[doc]
             doc_distribution = np.zeros(settings['numberTopics'], dtype='float64')
             for (topic, val) in doc_dist:
                 if topic < settings['numberTopics']:
-                    doc_distribution[topic] = val
+                        doc_distribution[topic] = val
             topic_distributions.append(doc_distribution)
         topic_distributions = np.asarray(topic_distributions)
         return topic_distributions
 
     def filterDates(self, settings, bow_corpus, timestamps):
-        df = pd.DataFrame(list(zip(timestamps, bow_corpus)), columns=['Date', 'val'])
+        df = pd.DataFrame(list(zip(timestamps, bow_corpus)), columns =['Date', 'val'])
         df = df.set_index(['Date'])
         df.sort_index(inplace=True)
-        # Filter to relevant dates
+        #Filter to relevant dates
         if 'start_date' in settings:
             df = df.loc[settings['start_date']:]
         if 'end_date' in settings:
@@ -199,9 +205,8 @@ class TopicModelNode:
             ids = corpusDF[settings['idFieldName']].values
         if 'start_date' in settings or 'end_date' in settings:
             bow_corpus, timestamps = self.filterDates(settings, bow_corpus, timestamps)
-        # Topics
-        topic_distribution = model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],
-                                               formatted=False)
+        #Topics
+        topic_distribution = model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
         topics = []
         for topic_set in topic_distribution:
             topics.append(topic_set[0])
@@ -211,15 +216,14 @@ class TopicModelNode:
         dominant_topic_counts, dominant_topic_dist = self.get_dominant_topics_counts_and_distribution(distribution)
         # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
         # Set IDs as index if defined then insert timestamp. If not, set timestamp as index
-        topic_distrib_df = pd.DataFrame(distribution, index=ids if 'idFieldName' in settings else timestamps,
-                                        columns=topics)
+        topic_distrib_df = pd.DataFrame(distribution, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
         if 'idFieldName' in settings:
             topic_distrib_df.insert(0, settings['dateFieldName'], timestamps)
         topic_data = []
         topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
         for topic, words_list in topics_words:
             topic_data.append(words_list + [dominant_topic_counts[topic]] + [np.around(dominant_topic_dist[topic], 4)])
-        headers = [f"Word {i}" for i in range(0, len(words_list))] + ["Topic Count", "Distribution"]
+        headers = [f"Word {i}" for i in range(0,len(words_list))] + ["Topic Count", "Distribution"]
         words_df = pd.DataFrame(topic_data, columns=headers)
         # Sort words by descending topic count
         words_df = words_df.sort_values("Topic Count", ascending=False)
