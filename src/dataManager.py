@@ -36,7 +36,7 @@ def getFilePath(settings, file, skip_node=False):
 
 
 def getOutputDir(settings):
-    """Return path to output directory while creating if needed."""
+    """Return path to project's output directory while creating if needed."""
     output_dir = os.path.join(os.getcwd(), OUTPUT_FOLDER, settings['filters']['out']['folder'])
     checkDirectory(output_dir)
     return output_dir

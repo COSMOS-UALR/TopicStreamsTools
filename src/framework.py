@@ -11,13 +11,19 @@ class Framework:
             cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
             self.project_name = cfg['project']
             self.routing = cfg['routing']
-            self.nodes = self.routing['nodes']
-            self.node_1 = TopicModelNode(self.project_name, self.nodes[0])
-            self.node_2 = TopicModelNode(self.project_name, self.nodes[1])
-            self.node_3 = EngagementBehaviorNode(self.project_name, self.nodes[2])
+            self.nodes = []
+            for node in self.routing['nodes']:
+                node_settings = node[list(node.keys())[0]]
+                self.nodes.append(self.nodeFactory(node_settings['node_type'])(self.project_name, node))
 
     def run(self):
-        # self.node_1.run()
-        # self.node_2.run()
-        self.node_3.run()
-        return
+        # for node in self.nodes:
+        #     node.run()
+        self.nodes[2].run()
+
+    def nodeFactory(self, node_type):
+        node_builder = {
+            'topic_model': TopicModelNode,
+            'channel_engagement': EngagementBehaviorNode,
+        }
+        return node_builder.get(node_type)

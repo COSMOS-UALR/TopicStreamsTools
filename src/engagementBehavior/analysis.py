@@ -3,23 +3,19 @@ import humanize
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
-import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
 import torch
 
-sns.set_context('talk', font_scale=.8)
 
-from ..dataManager import getOutputDir
+from .output import outputConfidenceScoreGraph, outputFrequencyGraph
 
-MODEL_SELECTED = "lstmae"  # Possible Values ['deepant', 'lstmae']
-LOOKBACK_SIZE = 1
 
 """# Compute Anomalies"""
 
 
-def get_anomalies(settings, data, threshold, start_date, anomaly_type, channel_id, columns):
+def getAnomaly(settings, data, threshold, start_date, anomaly_type, channel_id, columns):
+    """For a single type of anomaly dimension, return its findings TODO <needs more description>."""
     rolling_df = create_rolling_window_df(data)
     rolling_df.reset_index(drop=True, inplace=True)
     rolling_df.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -100,21 +96,21 @@ def read_modulate_data(dataframe):
     return dataframe, df
 
 
-def data_pre_processing(df):
+def data_pre_processing(df, lookback_size):
     """Data pre-processing - Create data for Model"""
     try:
         scaled_data = MinMaxScaler(feature_range=(0, 1))
         data_scaled_ = scaled_data.fit_transform(df)
         df.loc[:, :] = data_scaled_
         _data_ = df.to_numpy(copy=True)
-        X = np.zeros(shape=(df.shape[0] - LOOKBACK_SIZE, LOOKBACK_SIZE, df.shape[1]))
-        Y = np.zeros(shape=(df.shape[0] - LOOKBACK_SIZE, df.shape[1]))
+        X = np.zeros(shape=(df.shape[0] - lookback_size, lookback_size, df.shape[1]))
+        Y = np.zeros(shape=(df.shape[0] - lookback_size, df.shape[1]))
         timesteps = []
-        for i in range(LOOKBACK_SIZE - 1, df.shape[0] - 1):
+        for i in range(lookback_size - 1, df.shape[0] - 1):
             timesteps.append(df.index[i])
-            Y[i - LOOKBACK_SIZE + 1] = _data_[i + 1]
-            for j in range(i - LOOKBACK_SIZE + 1, i + 1):
-                X[i - LOOKBACK_SIZE + 1][LOOKBACK_SIZE - 1 - i + j] = _data_[j]
+            Y[i - lookback_size + 1] = _data_[i + 1]
+            for j in range(i - lookback_size + 1, i + 1):
+                X[i - lookback_size + 1][lookback_size - 1 - i + j] = _data_[j]
         return X, Y, timesteps
     except Exception as e:
         print("Error while performing data pre-processing : {0}".format(e))
@@ -124,9 +120,9 @@ def data_pre_processing(df):
 class DeepAnT(torch.nn.Module):
     """Model : Class for DeepAnT model"""
 
-    def __init__(self, LOOKBACK_SIZE, DIMENSION):
+    def __init__(self, lookback_size, dimension):
         super(DeepAnT, self).__init__()
-        self.conv1d_1_layer = torch.nn.Conv1d(in_channels=LOOKBACK_SIZE, out_channels=16, kernel_size=1)
+        self.conv1d_1_layer = torch.nn.Conv1d(in_channels=lookback_size, out_channels=16, kernel_size=1)
         self.relu_1_layer = torch.nn.ReLU()
         self.maxpooling_1_layer = torch.nn.MaxPool1d(kernel_size=2)
         self.conv1d_2_layer = torch.nn.Conv1d(in_channels=16, out_channels=16, kernel_size=1)
@@ -136,7 +132,7 @@ class DeepAnT(torch.nn.Module):
         self.dense_1_layer = torch.nn.Linear(80, 40)
         self.relu_3_layer = torch.nn.ReLU()
         self.dropout_layer = torch.nn.Dropout(p=0.25)
-        self.dense_2_layer = torch.nn.Linear(40, DIMENSION)
+        self.dense_2_layer = torch.nn.Linear(40, dimension)
 
     def forward(self, x):
         x = self.conv1d_1_layer(x)
@@ -155,9 +151,9 @@ class DeepAnT(torch.nn.Module):
 class LSTMAE(torch.nn.Module):
     """Model : Class for LSTMAE model"""
 
-    def __init__(self, LOOKBACK_SIZE, DIMENSION):
+    def __init__(self, dimension):
         super(LSTMAE, self).__init__()
-        self.lstm_1_layer = torch.nn.LSTM(DIMENSION, 128, 1)
+        self.lstm_1_layer = torch.nn.LSTM(dimension, 128, 1)
         self.dropout_1_layer = torch.nn.Dropout(p=0.2)
         self.lstm_2_layer = torch.nn.LSTM(128, 64, 1)
         self.dropout_2_layer = torch.nn.Dropout(p=0.2)
@@ -165,7 +161,7 @@ class LSTMAE(torch.nn.Module):
         self.dropout_3_layer = torch.nn.Dropout(p=0.2)
         self.lstm_4_layer = torch.nn.LSTM(64, 128, 1)
         self.dropout_4_layer = torch.nn.Dropout(p=0.2)
-        self.linear_layer = torch.nn.Linear(128, DIMENSION)
+        self.linear_layer = torch.nn.Linear(128, dimension)
 
     def forward(self, x):
         x, (_, _) = self.lstm_1_layer(x)
@@ -194,10 +190,10 @@ def make_train_step(model, loss_fn, optimizer):
     return train_step
 
 
-def compute(X, Y):
+def compute(X, Y, model):
     """Find Anomaly using model based computation"""
-    if str(MODEL_SELECTED) == "lstmae":
-        model = LSTMAE(10, 1)
+    if model['type'] == "lstmae":
+        model = LSTMAE(model['dimension'])
         criterion = torch.nn.MSELoss(reduction='mean')
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
         train_data = torch.utils.data.TensorDataset(torch.tensor(X.astype(np.float32)),
@@ -215,8 +211,8 @@ def compute(X, Y):
         hypothesis = model(torch.tensor(X.astype(np.float32))).detach().numpy()
         loss = np.linalg.norm(hypothesis - X, axis=(1, 2))
         return loss.reshape(len(loss), 1)
-    elif str(MODEL_SELECTED) == "deepant":
-        model = DeepAnT(10, 4)
+    elif model['type'] == "deepant":
+        model = DeepAnT(model['lookback_size'], model['dimension'])
         criterion = torch.nn.MSELoss(reduction='mean')
         optimizer = torch.optim.Adam(list(model.parameters()), lr=1e-5)
         train_data = torch.utils.data.TensorDataset(torch.tensor(X.astype(np.float32)),
@@ -242,29 +238,15 @@ def compute(X, Y):
 def compute_and_visualize_anomalies(settings, df_totals, start_date, anomaly_type, channel_id):
     in_data = trunc_data(df_totals)
     data, _data = read_modulate_data(in_data)
-    X, Y, T = data_pre_processing(data)
-    loss = compute(X, Y)
+    X, Y, T = data_pre_processing(data, settings['lookback_size'])
+    loss = compute(X, Y, settings['model'])
     loss_df = pd.DataFrame(loss, columns=["loss"])
     loss_df.index = T
     loss_df.index = pd.to_datetime(loss_df.index)
     loss_df["date"] = T
     loss_df["date"] = pd.to_datetime(loss_df["date"])
-    plt.figure(figsize=(20, 10))
-    sns.set_style("darkgrid")
-    ax = sns.distplot(loss_df["loss"], bins=100, label="Frequency")
-    ax.set_title("Frequency Distribution | Kernel Density Estimation")
-    ax.set(xlabel='Anomaly Confidence Score', ylabel='Frequency (sample)')
-    plt.axvline(1.80, color="k", linestyle="--")
-    plt.legend()
-    plt.savefig(
-        os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{start_date}_Frequency_Distribution.png'))
-    plt.figure(figsize=(20, 10))
-    ax = sns.lineplot(x="date", y="loss", data=loss_df, color='g', label="Anomaly Score")
-    ax.set_title("Anomaly Confidence Score vs Timestamp")
-    ax.set(ylabel="Anomaly Confidence Score", xlabel="Date")
-    plt.legend()
-    plt.savefig(
-        os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{start_date}Anomaly_Confidence_Score.png'))
+    outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
+    outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
     return loss_df
 
 
@@ -277,9 +259,7 @@ def merge_outputs_calc_sse(totals_df, loss_df):
 
 
 def extract_anomaly_list(threshold, start_date, analysis_df):
-    ANOMALY_THRESHOLD = float(threshold)
-    START_DATE = start_date
-    anomaly_list = [1 if x[6] > ANOMALY_THRESHOLD and x[2] > pd.to_datetime(START_DATE) else 0 for x in
+    anomaly_list = [1 if x[6] > float(threshold) and x[2] > pd.to_datetime(start_date) else 0 for x in
                     analysis_df.itertuples()]
     analysis_df['is_anomaly'] = anomaly_list
     anomaly_df = analysis_df.copy()
