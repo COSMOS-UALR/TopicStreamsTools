@@ -64,6 +64,7 @@ routing:
         filters:
           in:
             start_date: '2018-01-01'
+            retrain: False
             # channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
             channel_ids:
               - UC0rZoXAD5lxgBHMsjrGwWWQ
