@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import os
+from scipy.signal import find_peaks
 import seaborn as sns
 
 from ..dataManager import getOutputDir
@@ -17,6 +19,7 @@ def outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date
         plt.legend()
         plt.savefig(
             os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{start_date}_Frequency_Distribution.png'))
+        plt.close()
 
 
 def outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date):
@@ -27,4 +30,18 @@ def outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, star
         ax.set(ylabel="Anomaly Confidence Score", xlabel="Date")
         plt.legend()
         plt.savefig(
-            os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{start_date}Anomaly_Confidence_Score.png'))
+            os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{start_date}_Anomaly_Confidence_Score.png'))
+        plt.close()
+
+
+def outputPeaks(settings, df, channel_id, anomaly_type):
+    values = np.array(df['loss'])
+    peaks, _ = find_peaks(values, distance=150)
+    # Peak rows
+    print(df.iloc[peaks])
+    plt.figure(figsize=(20, 10))
+    plt.plot(values)
+    plt.plot(peaks, values[peaks], "x")
+    plt.savefig(
+        os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_peaks.png'))
+    plt.close()

@@ -9,7 +9,7 @@ import torch
 from tqdm import tqdm
 
 from ..dataManager import load_df, save_df
-from .output import outputConfidenceScoreGraph, outputFrequencyGraph
+from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
 
 
 """# Compute Anomalies"""
@@ -28,6 +28,7 @@ def getAnomaly(settings, data, threshold, start_date, anomaly_type, channel_id, 
         save_df(settings, loss_df_file, loss_df)
     outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
     outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
+    outputPeaks(settings, loss_df, channel_id, anomaly_type)
     analysis_df = merge_outputs_calc_sse(rolling_df, loss_df)
     anomalies = extract_anomaly_list(threshold, start_date, analysis_df)
     aggregated_anomalies = aggregate_anomalies(anomalies)
