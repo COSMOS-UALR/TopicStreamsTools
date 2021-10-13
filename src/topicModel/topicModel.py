@@ -24,16 +24,16 @@ class TopicModelNode:
 
     def run(self):
         settings = self.settings
-        settings['dataSource'] = settings['file']
+        settings['dataSource'] = settings['file'] if 'file' in settings else settings['dataSource']
         print(f"BEGIN {settings['node']}")
-        if 'file' in settings['filters']['in']:
+        if 'file' in settings['filters']['in'] or 'directory' in settings['filters']['in']:
             distributionDF, wordsDF = self.loadFromFile(settings)
         if 'node' in settings['filters']['in']:
             distributionDF, wordsDF = self.loadFromNode(settings)
         if 'folder' in settings['filters']['out']:
             nbFigures = settings['filters']['out']['nbFigures']
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
-            # saveToExcel(settings, distributionDF, wordsDF)
+            saveToExcel(settings, distributionDF, wordsDF)
             saveFigures(settings, distributionDF, wordsDF, n=nbFigures)
         if 'node' in settings['filters']['out']:
             belonging_threshold = 0.3
