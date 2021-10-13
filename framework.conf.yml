@@ -1,0 +1,81 @@
+project: pipeline_comments
+routing:
+  nodes:
+    - node_1:
+        node_type: topic_model
+        model: HDP
+        numberTopics: 20
+        numberWords: 10
+        minimumProbability: 0.00000001
+        file: YT_Comments_November_1_2020_to_March_1_2021_DE.csv
+        corpusFieldName: comment_displayed
+        dateFieldName: published_date
+        idFieldName: comment_id
+        # file: Twitter_Posts_November_1_2020_to_March_1_2021_DE.csv
+        # corpusFieldName: text
+        # dateFieldName: created_at
+        # idFieldName: id
+        roundToDay: false
+        reloadData: false    # Will reload input file and train a new model with the updated data
+        retrainModel: false  # Will use processed data and train a new model (useful to try different settings without processing the same corpus)
+        filters:
+          in:
+            file: true
+          out:
+            node: node_2
+            topics: [2]
+            # folder: pipeline_comments_results
+            # nbFigures: 10
+            # moving_average_size: 5
+    - node_2:
+        node_type: topic_model
+        model: LDA
+        # file: Twitter_Posts_November_1_2020_to_March_1_2021_DE.csv
+        # corpusFieldName: text
+        # dateFieldName: created_at
+        # idFieldName: id
+        file: YT_Comments_November_1_2020_to_March_1_2021_DE.csv
+        corpusFieldName: comment_displayed
+        dateFieldName: published_date
+        idFieldName: comment_id
+        numberTopics: 20
+        numberWords: 10
+        distributionInWorksheet: true
+        minimumProbability: 0.00000001
+        reloadData: false    # Will reload input file and train a new model with the updated data
+        retrainModel: false  # Will use processed data and train a new model (useful to try different settings without processing the same corpus)
+        filters:
+          in:
+            node: node_1
+          out:
+            folder: pipeline_comments_results
+            nbFigures: 20
+            moving_average_size: 5
+    - node_3:
+        node_type: channel_engagement
+        threshold: 0.4
+        lookback_size: 1
+        model:
+          type: lstmae
+          dimension: 1
+          # type: deepant
+          # lookback_size: 10
+          # dimension: 4
+        filters:
+          in:
+            start_date: '2018-01-01'
+            retrain: False
+            # channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
+            channel_ids:
+              - UC0rZoXAD5lxgBHMsjrGwWWQ
+              # - UC4a-Gbdw7vOaccHmFo40b9g
+            db_settings:
+              user: db_exporter
+              password: Cosmos1
+              host: 144.167.35.221
+              db: behaviors_on_youtube
+          out:
+            folder: engagement_results
+    # - node_4:
+    #   node_type: comment_behavior
+
