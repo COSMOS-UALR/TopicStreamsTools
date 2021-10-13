@@ -20,7 +20,7 @@ To run the script with the sample dataset:
 
 1. Move dataset to the Data folder.
     * This can be a single file, or a folder with multiple files with identical format.
-2. Update the `config.yml` file according to your dataset and needs, detailed description [below](#settings-info). Typically, the first four parameters must be updated with each different dataset. The rest can be left as is and will run.
+2. Update the `topic_model.conf.yml` file according to your dataset and needs, detailed description [below](#settings-info). Typically, the first four parameters must be updated with each different dataset. The rest can be left as is and will run.
 
 ```yaml
 settings:
