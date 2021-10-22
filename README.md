@@ -78,13 +78,19 @@ The name of the field the tool will use to identify each entry. This should be a
 ![Date Field](/images/idField.png)
 
 * **model_type**
-Type of topic model to use. Options: LDA, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
+Type of topic model to use. Options: LDA, LDA-Mallet, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
+
+* **mallet_path**
+If the topic model is LDA-Mallet, you will need to provide the path to its home directory. You can download mallet [here](http://mallet.cs.umass.edu/download.php).
+
+* **optimize_model**
+Setting this parameter to True will train models using a range of topic numbers and select the one with the highest coherence. This will increase the length of the first run time.
+
+* **coherence_measure**
+The type of measure to give coherence score. Accepted values are `c_v`(default) and `u_mass`. Details on coherence measures can be found [here](https://towardsdatascience.com/evaluate-topic-model-in-python-latent-dirichlet-allocation-lda-7d57484bb5d0).
 
 * **roundToDay**
 If defined and True, rounds dates to the nearest day. Better for larger corpora spanning over multiple months.
-
-* **numberTopics**
-The total number of topics you would like your corpus to be divided into. Experiment with this. Ten or 20 is usually a good number but larger datasets may obtain good results with 50 topics.
 
 * **numberWords**
 The total number of words you would like to represent each topic. For example, if numberWords = 10 this will be the result:
@@ -106,6 +112,9 @@ Topics with a probability lower than this threshold will be filtered out.
 Percentile value, indicates what percentage of the dataset size to use as a moving average window to smooth the resulting figures. Values between 1 and 15 are recommended but you may need to experiment with different numbers. Note that larger values may make figures lose resolution. Depending on the composition of your dataset some dates may get lost if the value is too high. Set to 0 to forego using a moving average.
 
 ### Optional Settings
+
+* **numberTopics**
+If not using optimize_model, the total number of topics you would like your corpus to be divided into. Experiment with this. Ten or 20 is usually a good number but larger datasets may obtain good results with 50 topics.
 
 * (JSON only) **json_orientation**
 Specifies the orientation of the json file. Needed for JSON files. See the documentation below (arguments for 'orient') for acceptable values:

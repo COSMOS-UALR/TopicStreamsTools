@@ -11,6 +11,7 @@ from ..dataManager import fileExists, getFilePath, load_df, load_tmp, save_df, s
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
 CORPUS_ID_FILE = 'corpus_id.pkl'
+TOKENS_FILE = 'tokens.obj'
 
 
 def loadModel(settings, file):
@@ -18,31 +19,35 @@ def loadModel(settings, file):
     if not fileExists(file_path):
         print(f"{file_path} not found.")
         return None
-    return models.LdaModel.load(file_path)
+    model = models.LdaModel.load(file_path)
+    settings['numberTopics'] = model.num_topics
+    return model
 
 
 def loadData(settings):
     """Load multiple metadata files for topic modeling."""
     bow_corpus = load_tmp(settings, BOW_FILE)
+    processed_corpus = load_tmp(settings, TOKENS_FILE)
     dictionary = load_tmp(settings, DICT_FILE)
     corpus_df = load_df(settings, CORPUS_ID_FILE)
-    return bow_corpus, dictionary, corpus_df
+    return bow_corpus, dictionary, corpus_df, processed_corpus
 
 
 def getProcessedData(settings, df):
-    """Process data from given corpus df."""
+    """Process data from given corpus df. Returns a bag of word, dictionary, and list of list of tokens."""
     raw_corpus = df[settings['corpusFieldName']]
-    bow_corpus, dictionary = processData(raw_corpus)
+    bow_corpus, dictionary, processed_corpus = processData(raw_corpus)
     # Dump processed data to files for faster loading
     save_tmp(settings, BOW_FILE, bow_corpus)
+    save_tmp(settings, TOKENS_FILE, processed_corpus)
     save_tmp(settings, DICT_FILE, dictionary)
     # Dump id info to files for faster loading
     save_df(settings, CORPUS_ID_FILE, df.drop(settings['corpusFieldName'], axis=1))
-    return bow_corpus, dictionary
+    return bow_corpus, dictionary, processed_corpus
 
 
 def processData(raw_corpus):
-    """Process text corpus to obtain bag of words and tokens dictionary."""
+    """Process text corpus to obtain bag of words, tokens dictionary, and list of list of tokens."""
 
     def processCorpus(raw_corpus, min_token_len=3):
         stoplist = set(stopwords.words('english'))
@@ -66,11 +71,10 @@ def processData(raw_corpus):
         # Only keep words that appear more than once
         return [[token for token in text if frequency[token] > 1] for text in
                 tqdm(texts, desc='Filtering out unique tokens')]
-
     processed_corpus = processCorpus(raw_corpus)
     print("Creating dictionary. This may take a few minutes depending on the size of the corpus.")
     dictionary = corpora.Dictionary(processed_corpus)
     dictionary.filter_extremes()
     # Convert original corpus to a bag of words/list of vectors:
     bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus, desc='Vectorizing corpus')]
-    return bow_corpus, dictionary
+    return bow_corpus, dictionary, processed_corpus

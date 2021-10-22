@@ -1,7 +1,10 @@
+from gensim import models
+import matplotlib.pyplot as plt 
 import os
 import pandas as pd
 import random
 from tqdm import tqdm
+import pyLDAvis.gensim_models as gensimvis
 
 from ..dataManager import checkPathExists, getFilePath, getOutputDir
 
@@ -146,3 +149,31 @@ def saveFigures(settings, topics_df, words_df, n=5):
         for topic_group in topic_groups:
             saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir)
     print(f"Figures plotted to {output_dir}.")
+
+
+def saveCoherencePlot(settings, coherence_values, topics_range, coherence_measure):
+    output_dir = getOutputDir(settings)
+    plt.plot(topics_range, coherence_values)
+    plt.xlabel("Number of Topics")
+    plt.ylabel("Coherence Score")
+    plt.savefig(os.path.join(output_dir, f'{settings["model"]}_{coherence_measure}_Coherence.png'))
+
+
+### Interactive Web Page ###
+
+
+def saveInteractivePage(settings, model, bow_corpus, dictionary):
+    # Model needs to be converted to Gensim's LDA if Mallet was used
+    if settings['model_type'] == 'LDA-Mallet':
+        lda_model = models.LdaModel(id2word=model.id2word, num_topics=model.num_topics, alpha=model.alpha, eta=0)
+        lda_model.state.sstats[...] = model.wordtopics
+        lda_model.sync_state()
+    else:
+        lda_model = model
+    filename = f"InteractiveLDAvis.html"
+    output_dir = getOutputDir(settings)
+    path = os.path.join(output_dir, filename)
+    data = gensimvis.prepare(lda_model, bow_corpus, dictionary)
+    html_string = gensimvis.prepared_data_to_html(data)
+    with open(path, 'w') as html_writer:
+        html_writer.write(html_string)

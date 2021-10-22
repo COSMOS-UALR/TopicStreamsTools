@@ -1,14 +1,15 @@
 from platform import dist
 from gensim import models
 import os
-from gensim.corpora import dictionary
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 from ..dataManager import load_df, load_tmp, save_df, read_data, save_tmp
 from .input import getProcessedData, loadData, loadModel
-from .output import getIDsInTopics, saveModel, saveFigures, saveToExcel
+from .output import getIDsInTopics, saveCoherencePlot, saveInteractivePage, saveModel, saveFigures, saveToExcel
+
+DEFAULT_COHERENCE = 'c_v'
 
 class TopicModelNode:
     def __init__(self, project_name, settings) -> None:
@@ -19,22 +20,22 @@ class TopicModelNode:
         self.settings = settings[node]
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
+        self.settings['dataSource'] = self.settings['file'] if 'file' in self.settings else self.settings['dataSource']
+        self.settings['coherence_measure'] = self.settings['coherence_measure'] if 'coherence_measure' in self.settings else DEFAULT_COHERENCE
         self.MODEL_FILE = f"{self.settings['model']}_model"
 
 
     def run(self):
         settings = self.settings
-        settings['dataSource'] = settings['file'] if 'file' in settings else settings['dataSource']
         print(f"BEGIN {settings['node']}")
-        if 'file' in settings['filters']['in'] or 'directory' in settings['filters']['in']:
-            distributionDF, wordsDF = self.loadFromFile(settings)
-        if 'node' in settings['filters']['in']:
-            distributionDF, wordsDF = self.loadFromNode(settings)
+        load_from_node = 'node' in settings['filters']['in']
+        distributionDF, wordsDF, model, bow_corpus, dictionary = self.load(settings, from_node=load_from_node)
         if 'folder' in settings['filters']['out']:
             nbFigures = settings['filters']['out']['nbFigures']
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
             saveToExcel(settings, distributionDF, wordsDF)
             saveFigures(settings, distributionDF, wordsDF, n=nbFigures)
+            # saveInteractivePage(settings, model, bow_corpus, dictionary)
         if 'node' in settings['filters']['out']:
             belonging_threshold = 0.3
             topics = settings['filters']['out']['topics']
@@ -43,82 +44,87 @@ class TopicModelNode:
         print(f"NODE {settings['node']} END")
 
 
-    def loadFromFile(self, settings):
+    def load(self, settings, from_node=False):
         print('Attempting to load Dataframes...')
-        distributionDF = load_df(settings, self.DISTRIB_FILE)
-        wordsDF = load_df(settings, self.WORDS_FILE)
-        if settings['reloadData'] or settings['retrainModel'] or (distributionDF is None or wordsDF is None):
-            settings['verbose'] = True
+        settings['verbose'] = True
+        if not settings['reloadData']:
+            bow_corpus, dictionary, corpus_df, processed_corpus = loadData(settings)
+        if settings['reloadData'] or bow_corpus is None or dictionary is None or corpus_df is None or processed_corpus is None:
             if not settings['reloadData']:
-                bow_corpus, dictionary, corpus_df = loadData(settings)
-            if settings['reloadData'] or bow_corpus is None or dictionary is None or corpus_df is None:
-                if not settings['reloadData']:
-                    print("Failure to find processed data. Reloading corpus.")
-                print("Fetching data...")
-                corpus_df = read_data(settings)
-                bow_corpus, dictionary = getProcessedData(settings, corpus_df)
-            model = self.get_model(settings, bow_corpus, dictionary)
-            print('Calculating Dataframes...')
-            distributionDF, wordsDF = self.createMatrix(settings, model, bow_corpus, corpus_df)
-        return distributionDF, wordsDF
-
-
-    def loadFromNode(self, settings):
-        print('Attempting to load Dataframes...')
-        distributionDF = load_df(settings, self.DISTRIB_FILE)
-        wordsDF = load_df(settings, self.WORDS_FILE)
-        if settings['reloadData'] or settings['retrainModel'] or (distributionDF is None or wordsDF is None):
-            settings['verbose'] = True
-            if not settings['reloadData']:
-                bow_corpus, dictionary, corpus_df = loadData(settings)
-            if settings['reloadData'] or bow_corpus is None or dictionary is None or corpus_df is None:
-                if not settings['reloadData']:
-                    print("Failure to find processed data. Reloading corpus.")
-                print("Fetching data...")
+                print("Failure to find processed data. Reloading corpus.")
+            print("Fetching data...")
+            if from_node:
                 settings['verbose'] = False
                 filtered_ids = []
                 corpus_df = read_data(settings)
                 filtered_ids = load_tmp(settings, self.IDS_FILE)
                 corpus_df = corpus_df[corpus_df[settings['idFieldName']].isin(filtered_ids)]
                 print(f"Kept {corpus_df.shape[0]} items.")
-                bow_corpus, dictionary = getProcessedData(settings, corpus_df)
-            model = self.get_model(settings, bow_corpus, dictionary)
+            else:
+                corpus_df = read_data(settings)
+            bow_corpus, dictionary, processed_corpus = getProcessedData(settings, corpus_df)
+        if settings['reloadData'] or settings['retrainModel']:
+            model = self.getModel(settings, bow_corpus, dictionary, processed_corpus)
             print('Calculating Dataframes...')
             distributionDF, wordsDF = self.createMatrix(settings, model, bow_corpus, corpus_df)
-        return distributionDF, wordsDF
+        else:
+            model = loadModel(settings, self.MODEL_FILE)
+            distributionDF = load_df(settings, self.DISTRIB_FILE)
+            wordsDF = load_df(settings, self.WORDS_FILE)
+        return distributionDF, wordsDF, model, bow_corpus, dictionary
 
 
-    def getCoherence(self, model, bow_corpus):
-        cm = models.coherencemodel.CoherenceModel(model=model, corpus=bow_corpus, coherence='u_mass')
-        return cm.get_coherence()
+    def getCoherenceModel(self, model, coherence_measure, bow_corpus, processed_corpus, dictionary):
+        if coherence_measure is 'c_v':
+            return models.coherencemodel.CoherenceModel(model=model, texts=processed_corpus, dictionary=dictionary, coherence='c_v')
+        return models.coherencemodel.CoherenceModel(model=model, corpus=bow_corpus, coherence='u_mass')
 
 
-    def createModel(self, settings, model_type, bow_corpus, dictionary):
+    def createModel(self, model_type, bow_corpus, dictionary, processed_corpus, number_topics):
         print(f"Training {model_type} model. This may take several minutes depending on the size of the corpus.")
         model = None
         if model_type == 'LDA':
-            model = models.LdaModel(bow_corpus, num_topics=settings['numberTopics'], id2word=dictionary, minimum_probability=settings['minimumProbability'])
+            model = models.LdaModel(bow_corpus, num_topics=number_topics, id2word=dictionary, minimum_probability=self.settings['minimumProbability'])
+        elif model_type == 'LDA-Mallet':
+            os.environ['MALLET_HOME'] = self.settings['mallet_path']
+            mallet_path = os.path.join(self.settings['mallet_path'], 'bin', 'mallet')
+            model = models.wrappers.LdaMallet(mallet_path, corpus=bow_corpus, num_topics=number_topics, id2word=dictionary)
         elif model_type == 'HDP':
             model = models.HdpModel(bow_corpus, dictionary)
         else:
             print('Invalid model')
             return
+        coherence_model = self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)
+        print(f"Model coherence score: {coherence_model.get_coherence()}")
+        return model
+
+
+    def getModel(self, settings, bow_corpus, dictionary, processed_corpus):
+        if 'optimize_model' in settings and settings['optimize_model']:
+            model = self.optimizeModel(dictionary, bow_corpus, processed_corpus)
+        else:
+            model = self.createModel(settings['model'], bow_corpus, dictionary, processed_corpus, self.settings['numberTopics'])
         saveModel(settings, self.MODEL_FILE, model)
         return model
 
 
-    def get_model(self, settings, bow_corpus, dictionary):
-        model = None
-        model_type = settings['model']
-        if not settings['retrainModel']:
-            model = loadModel(settings, self.MODEL_FILE)
-        if settings['retrainModel'] or model is None:
-            if not settings['retrainModel']:
-                print('Failed to load model - recreating.')
-            print("Loading model and corpus...")
-            model = self.createModel(settings, model_type, bow_corpus, dictionary)
-        print(f"Model coherence score: {self.getCoherence(model, bow_corpus)}")
-        return model
+    def optimizeModel(self, dictionary, bow_corpus, processed_corpus):
+        """Compute coherence for various number of topics."""
+        coherence_values = []
+        model_list = []
+        topics_range = range(2, 40, 4)
+        for num_topics in topics_range:
+            model = self.createModel(self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)
+            model_list.append(model)
+            coherence_model = self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)
+            coherence_values.append(coherence_model.get_coherence())
+        saveCoherencePlot(self.settings, coherence_values, topics_range, self.settings['coherence_measure'])
+        best_result_index = coherence_values.index(max(coherence_values))
+        optimal_model = model_list[best_result_index]
+        optimal_number_topics = topics_range[best_result_index]
+        print(f'{optimal_number_topics} topics gives the highest coherence score of {coherence_values[best_result_index]}')
+        self.settings['numberTopics'] = optimal_number_topics
+        return optimal_model
 
 
     def get_dominant_topics_counts_and_distribution(self, doc_topics):
@@ -150,24 +156,6 @@ class TopicModelNode:
         assert np.around(np.sum(dominant_topic_dist), 5) == 1.0
         return dominant_topic_counts, dominant_topic_dist
 
-
-    def print_dominant_topics_by_frequency(self, dominant_topic_counts, dominant_topic_dist):
-        """
-        Function shows a simple way of printing useful information about the most frequent dominant topics.
-        Both of the parameters for this function come from get_dominant_topics_counts_and_distribution() above.
-        :param dominant_topic_counts: Array of topic counts such that the ith element is the number of documents
-        with dominant topic i.
-        :param dominant_topic_dist: Normalized form of dominant_topic_counts such that the ith element is the number of
-        documents with dominant topic i divided by the number of documents.
-        """
-        # Get topic indices ordered from most to least frequent dominant topics.
-        ordered_topic_indices = np.argsort(-1 * dominant_topic_counts)
-        # Print the topic index, the number of documents with the dominant topic, and the proportion of documents.
-        for topic_index in ordered_topic_indices:
-            print('topic ' + str(topic_index)
-                + ', count=' + str(dominant_topic_counts[topic_index])
-                + ', proportion=' + str(np.around(dominant_topic_dist[topic_index], 4)))
-        print()
 
     def get_doc_topic_distributions(self, settings, model, corpus):
         topic_distributions = []
@@ -214,7 +202,6 @@ class TopicModelNode:
         # Output Topic Distribution and Topic Words
         distribution = self.get_doc_topic_distributions(settings, model, bow_corpus)
         dominant_topic_counts, dominant_topic_dist = self.get_dominant_topics_counts_and_distribution(distribution)
-        # print_dominant_topics_by_frequency(dominant_topic_counts, dominant_topic_dist)
         # Set IDs as index if defined then insert timestamp. If not, set timestamp as index
         topic_distrib_df = pd.DataFrame(distribution, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
         if 'idFieldName' in settings:
