@@ -122,7 +122,9 @@ def get_query(db_settings):
 def read_file(settings, dataFile):
     data_type = Path(dataFile).suffix
     encoding = settings['encoding'] if 'encoding' in settings else 'utf-8'
-    selected_columns = [settings['corpusFieldName'], settings['dateFieldName']]
+    selected_columns = [settings['corpusFieldName']]
+    if 'dateFieldName' in settings:
+        selected_columns.append(settings['dateFieldName'])
     if 'idFieldName' in settings:
         selected_columns.append(settings['idFieldName'])
     if data_type == '.json':
@@ -145,7 +147,6 @@ def read_file(settings, dataFile):
 
 def read_data(settings):
     df = None
-    dateFieldName = settings['dateFieldName']
     if 'verbose' in settings and settings['verbose']:
         # hack, use custom level
         log.basicConfig(format="%(message)s", level=log.INFO)
@@ -173,7 +174,10 @@ def read_data(settings):
     log.info("Fields:")
     log.info(df.columns.values)
     log.basicConfig(format="%(message)s", level=log.ERROR)
+    if 'dateFieldName' not in settings:
+        return df
     # Convert to datetime format (useful to filter by date) and round to nearest day
+    dateFieldName = settings['dateFieldName']
     if 'roundToDay' in settings and settings['roundToDay'] is True:
         df[dateFieldName] = pd.Series(pd.to_datetime(df[dateFieldName])).dt.round("D")
     else:

@@ -204,7 +204,7 @@ class TopicModelNode:
         dominant_topic_counts, dominant_topic_dist = self.get_dominant_topics_counts_and_distribution(distribution)
         # Set IDs as index if defined then insert timestamp. If not, set timestamp as index
         topic_distrib_df = pd.DataFrame(distribution, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
-        if 'idFieldName' in settings:
+        if 'idFieldName' in settings and 'dateFieldName' in settings:
             topic_distrib_df.insert(0, settings['dateFieldName'], timestamps)
         topic_data = []
         topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
