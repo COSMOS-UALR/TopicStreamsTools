@@ -4,7 +4,8 @@ import os
 import pandas as pd
 import random
 from tqdm import tqdm
-import pyLDAvis.gensim_models as gensimvis
+import pyLDAvis
+import pyLDAvis.gensim_models
 
 from ..dataManager import checkPathExists, getFilePath, getOutputDir
 
@@ -173,7 +174,5 @@ def saveInteractivePage(settings, model, bow_corpus, dictionary):
     filename = f"InteractiveLDAvis.html"
     output_dir = getOutputDir(settings)
     path = os.path.join(output_dir, filename)
-    data = gensimvis.prepare(lda_model, bow_corpus, dictionary)
-    html_string = gensimvis.prepared_data_to_html(data)
-    with open(path, 'w') as html_writer:
-        html_writer.write(html_string)
+    data = pyLDAvis.gensim_models.prepare(lda_model, bow_corpus, dictionary)
+    pyLDAvis.save_html(data, path)

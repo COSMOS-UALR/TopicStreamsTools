@@ -35,7 +35,7 @@ class TopicModelNode:
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
             saveToExcel(settings, distributionDF, wordsDF)
             saveFigures(settings, distributionDF, wordsDF, n=nbFigures)
-            # saveInteractivePage(settings, model, bow_corpus, dictionary)
+            saveInteractivePage(settings, model, bow_corpus, dictionary)
         if 'node' in settings['filters']['out']:
             belonging_threshold = 0.3
             topics = settings['filters']['out']['topics']
