@@ -74,7 +74,7 @@ class TopicModelNode:
 
 
     def getCoherenceModel(self, model, coherence_measure, bow_corpus, processed_corpus, dictionary):
-        if coherence_measure is 'c_v':
+        if coherence_measure == 'c_v':
             return models.coherencemodel.CoherenceModel(model=model, texts=processed_corpus, dictionary=dictionary, coherence='c_v')
         return models.coherencemodel.CoherenceModel(model=model, corpus=bow_corpus, coherence='u_mass')
 
