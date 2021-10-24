@@ -1,4 +1,3 @@
-from platform import dist
 from gensim import models
 import os
 import numpy as np
