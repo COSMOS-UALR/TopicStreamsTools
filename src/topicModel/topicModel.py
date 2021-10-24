@@ -45,6 +45,7 @@ class TopicModelNode:
 
 
     def load(self, settings, from_node=False):
+        """Will attempt to load processed file, or regenerate if retrainData or retrainModel are True."""
         print('Attempting to load Dataframes...')
         settings['verbose'] = True
         if not settings['reloadData']:
@@ -63,14 +64,13 @@ class TopicModelNode:
             else:
                 corpus_df = read_data(settings)
             bow_corpus, dictionary, processed_corpus = getProcessedData(settings, corpus_df)
-        if settings['reloadData'] or settings['retrainModel']:
+        model = loadModel(settings, self.MODEL_FILE)
+        distributionDF = load_df(settings, self.DISTRIB_FILE)
+        wordsDF = load_df(settings, self.WORDS_FILE)
+        if settings['reloadData'] or settings['retrainModel'] or model is None or distributionDF is None or wordsDF is None:
             model = self.getModel(settings, bow_corpus, dictionary, processed_corpus)
             print('Calculating Dataframes...')
             distributionDF, wordsDF = self.createMatrix(settings, model, bow_corpus, corpus_df)
-        else:
-            model = loadModel(settings, self.MODEL_FILE)
-            distributionDF = load_df(settings, self.DISTRIB_FILE)
-            wordsDF = load_df(settings, self.WORDS_FILE)
         return distributionDF, wordsDF, model, bow_corpus, dictionary
 
 
