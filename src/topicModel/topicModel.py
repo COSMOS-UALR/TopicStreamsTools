@@ -19,7 +19,10 @@ class TopicModelNode:
         self.settings = settings[node]
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
-        self.settings['dataSource'] = self.settings['file'] if 'file' in self.settings else self.settings['dataSource']
+        if 'dataSource' in self.settings:
+            self.settings['dataSource'] = self.settings['dataSource']
+        elif 'file' in self.settings:
+            self.settings['dataSource'] = self.settings['file']
         self.settings['coherence_measure'] = self.settings['coherence_measure'] if 'coherence_measure' in self.settings else DEFAULT_COHERENCE
         self.MODEL_FILE = f"{self.settings['model']}_model"
 
