@@ -19,7 +19,12 @@ def loadModel(settings, file):
     if not fileExists(file_path):
         print(f"{file_path} not found.")
         return None
-    model = models.LdaModel.load(file_path)
+    if settings['model'] == 'LDA':
+        model = models.LdaModel.load(file_path)
+    if settings['model'] == 'HDP':
+        model = models.HdpModel.load(file_path)
+    if settings['model'] == 'LDA-Mallet':
+        model = models.wrappers.LdaMallet.load(file_path)
     settings['numberTopics'] = model.num_topics
     return model
 
