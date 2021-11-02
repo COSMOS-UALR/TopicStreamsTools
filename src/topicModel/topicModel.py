@@ -86,12 +86,14 @@ class TopicModelNode:
     def createModel(self, model_type, bow_corpus, dictionary, processed_corpus, number_topics):
         print(f"Training {model_type} model. This may take several minutes depending on the size of the corpus.")
         model = None
+        iterations = self.settings['iterations'] if 'iterations' in self.settings else 50
+        passes = self.settings['passes'] if 'passes' in self.settings else 1
         if model_type == 'LDA':
-            model = models.LdaModel(bow_corpus, num_topics=number_topics, id2word=dictionary, minimum_probability=self.settings['minimumProbability'])
+            model = models.LdaModel(bow_corpus, num_topics=number_topics, id2word=dictionary, passes=passes, alpha='auto', iterations=iterations, minimum_probability=self.settings['minimumProbability'])
         elif model_type == 'LDA-Mallet':
             os.environ['MALLET_HOME'] = self.settings['mallet_path']
             mallet_path = os.path.join(self.settings['mallet_path'], 'bin', 'mallet')
-            model = models.wrappers.LdaMallet(mallet_path, corpus=bow_corpus, num_topics=number_topics, id2word=dictionary)
+            model = models.wrappers.LdaMallet(mallet_path, corpus=bow_corpus, num_topics=number_topics, id2word=dictionary, iterations=iterations)
         elif model_type == 'HDP':
             model = models.HdpModel(bow_corpus, dictionary)
         else:
@@ -118,9 +120,9 @@ class TopicModelNode:
         topics_range = range(2, 40, 4)
         with Pool(processes=4) as pool:
             model_results = [pool.apply_async(self.createModel, (self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)) for num_topics in topics_range]
-            model_list = [model.get() for model in model_results]
+            model_list = [model.get(timeout=None) for model in model_results]
             coherence_results = [pool.apply_async(self.getCoherenceModel, (model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)) for model in model_list]
-            coherence_values = [coherence.get() for coherence in coherence_results]
+            coherence_values = [coherence.get(timeout=None) for coherence in coherence_results]
         saveCoherencePlot(self.settings, coherence_values, topics_range, self.settings['coherence_measure'])
         best_result_index = coherence_values.index(max(coherence_values))
         optimal_model = model_list[best_result_index]

@@ -11,9 +11,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Multiprocessing for model optimization.
 - Accepts stopwords from `stopwords.txt`. This filters out tokens at corpus processing.
+- The following parameters can now be informed in the config file when using the Gensim LDA model (see [the documenation](https://radimrehurek.com/gensim/models/ldamodel.html) for details):
+    - passes
+    - iterations
+- The following parameters can now be informed in the config file when using the LDA Mallet model (see [the documenation](https://radimrehurek.com/gensim_3.8.3/models/wrappers/ldamallet.html) for details):
+    - iterations
 
-<!-- ### Changed
-- Start using "changelog" over "change log" since it's the common usage.
+### Changed
+- The default LDA alpha is now set to [auto](https://radimrehurek.com/gensim/models/ldamodel.html).
 
-### Removed
+<!-- ### Removed
 - Obsolete conf file -->
