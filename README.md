@@ -3,6 +3,8 @@
 This tool provides a quick way to generate topic streams for a given corpus.
 JSON, Excel, and CSV files are accepted. However it is recommended to avoid CSV to limit ambiguous separators on large text fields. If the script is failing with a CSV file try with a JSON version.
 
+See the latest changes [here](CHANGELOG.md).
+
 ![Settings](/images/topicStreamExample.png)
 
 
