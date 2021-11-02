@@ -12,6 +12,7 @@ BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
 CORPUS_ID_FILE = 'corpus_id.pkl'
 TOKENS_FILE = 'tokens.obj'
+STOPWORDS_FILE = 'stopwords.txt'
 
 
 def loadModel(settings, file):
@@ -56,6 +57,8 @@ def processData(raw_corpus):
 
     def processCorpus(raw_corpus, min_token_len=3):
         stoplist = set(stopwords.words('english'))
+        if fileExists(STOPWORDS_FILE):
+            stoplist.update(set(line.strip() for line in open(STOPWORDS_FILE)))
         texts = []
         for document in tqdm(raw_corpus, desc='Normalizing corpus'):
             # lowercase the document string and replace all newlines and tabs with spaces.
