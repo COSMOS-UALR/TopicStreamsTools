@@ -1,6 +1,5 @@
 from gensim import models
 import os
-from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -118,11 +117,11 @@ class TopicModelNode:
         coherence_values = []
         model_list = []
         topics_range = range(2, 40, 4)
-        with Pool(processes=4) as pool:
-            model_results = [pool.apply_async(self.createModel, (self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)) for num_topics in topics_range]
-            model_list = [model.get(timeout=None) for model in model_results]
-            coherence_results = [pool.apply_async(self.getCoherenceModel, (model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)) for model in model_list]
-            coherence_values = [coherence.get(timeout=None) for coherence in coherence_results]
+        for num_topics in topics_range:
+            model = self.createModel(self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)
+            model_list.append(model)
+            coherence_model = self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)
+            coherence_values.append(coherence_model.get_coherence())
         saveCoherencePlot(self.settings, coherence_values, topics_range, self.settings['coherence_measure'])
         best_result_index = coherence_values.index(max(coherence_values))
         optimal_model = model_list[best_result_index]
