@@ -32,6 +32,8 @@ settings:
     dateFieldName: debunking_date
     # Advanced settings
     model_type: LDA
+    optimize_model: True
+    multithreading: True
     roundToDay: False
     numberTopics: 20
     numberWords: 10
@@ -87,6 +89,9 @@ If the topic model is LDA-Mallet, you will need to provide the path to its home 
 
 * **optimize_model**
 Setting this parameter to True will train models using a range of topic numbers and select the one with the highest coherence. This will increase the length of the first run time.
+
+* **multithreading**
+Will attempt to use multithreading to accelerate training. Known to cause issues when generating plots, you may need to rerun the script after the model has been saved.
 
 * **coherence_measure**
 The type of measure to give coherence score. Accepted values are `c_v`(default) and `u_mass`. Details on coherence measures can be found [here](https://towardsdatascience.com/evaluate-topic-model-in-python-latent-dirichlet-allocation-lda-7d57484bb5d0).

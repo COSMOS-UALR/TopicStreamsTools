@@ -1,6 +1,7 @@
 from gensim import models
-import os
+import multiprocessing, queue, threading
 import numpy as np
+import os
 import pandas as pd
 from tqdm import tqdm
 
@@ -112,16 +113,34 @@ class TopicModelNode:
         return model
 
 
+    def multithreadedCreateModel(self, q, bow_corpus, dictionary, processed_corpus, model_list):
+        args = q.get()
+        index = args[0]
+        num_topics = args[1]
+        model = self.createModel(self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)
+        model_list[index] = model
+        q.task_done()
+
+
     def optimizeModel(self, dictionary, bow_corpus, processed_corpus):
         """Compute coherence for various number of topics."""
-        coherence_values = []
-        model_list = []
         topics_range = range(2, 40, 4)
-        for num_topics in topics_range:
-            model = self.createModel(self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)
-            model_list.append(model)
-            coherence_model = self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)
-            coherence_values.append(coherence_model.get_coherence())
+        coherence_values = []
+        model_list = [None for _ in topics_range]
+        if 'multithreading' in self.settings and self.settings['multithreading']:
+            q = queue.Queue()
+            # for _ in range(multiprocessing.cpu_count()):
+            for i, num_topics in enumerate(topics_range):
+                thread = threading.Thread(target=self.multithreadedCreateModel, args=(q, bow_corpus, dictionary, processed_corpus, model_list), daemon=True)
+                thread.start()
+            for i, num_topics in enumerate(topics_range):
+                q.put((i, num_topics))
+            q.join()
+        else:
+            for i, num_topics in enumerate(topics_range):
+                model_list[i] = self.createModel(self.settings['model'], bow_corpus, dictionary, processed_corpus, num_topics)
+        for model in model_list:
+            coherence_values.append(self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary).get_coherence())
         saveCoherencePlot(self.settings, coherence_values, topics_range, self.settings['coherence_measure'])
         best_result_index = coherence_values.index(max(coherence_values))
         optimal_model = model_list[best_result_index]
