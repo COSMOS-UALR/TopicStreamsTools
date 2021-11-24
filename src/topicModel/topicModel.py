@@ -1,5 +1,5 @@
 from gensim import models
-import multiprocessing, queue, threading
+import queue, threading
 import numpy as np
 import os
 import pandas as pd
