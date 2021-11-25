@@ -30,13 +30,17 @@ def loadModel(settings, file):
     return model
 
 
-def loadData(settings):
+def loadProcessedData(settings):
     """Load multiple metadata files for topic modeling."""
     bow_corpus = load_tmp(settings, BOW_FILE)
     processed_corpus = load_tmp(settings, TOKENS_FILE)
     dictionary = load_tmp(settings, DICT_FILE)
+    return bow_corpus, dictionary, processed_corpus
+
+def loadData(settings):
+    """Load raw data."""
     corpus_df = load_df(settings, CORPUS_ID_FILE)
-    return bow_corpus, dictionary, corpus_df, processed_corpus
+    return corpus_df
 
 
 def getProcessedData(settings, df):
