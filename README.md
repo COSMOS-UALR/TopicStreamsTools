@@ -144,6 +144,12 @@ While the model is trained on the entire corpus for performance, you may want to
 * **end_date**
 Same as above for the end date. Example value: '2020-03-01'.
 
+* **iterations**
+Maximum number of iterations through the corpus when inferring the topic distribution of a corpus.
+
+* **passes**
+Number of passes through the corpus during training.
+
 * **lang**
 Optional tuple where the first item is the name of the language field and the second is the language to keep.
 
