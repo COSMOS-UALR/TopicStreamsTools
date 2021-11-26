@@ -1,16 +1,17 @@
 from collections import defaultdict
+import errno
 from gensim import corpora
 from gensim import models
 from nltk.corpus import stopwords
+import os
 import re
 import string
 from tqdm import tqdm
 
-from ..dataManager import fileExists, getFilePath, load_df, load_tmp, save_df, save_tmp
+from ..dataManager import fileExists, getFilePath, load_tmp, save_tmp
 
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
-CORPUS_ID_FILE = 'corpus_id.pkl'
 TOKENS_FILE = 'tokens.obj'
 STOPWORDS_FILE = 'stopwords.txt'
 
@@ -18,8 +19,7 @@ STOPWORDS_FILE = 'stopwords.txt'
 def loadModel(settings, file):
     file_path = getFilePath(settings, file)
     if not fileExists(file_path):
-        print(f"{file_path} not found.")
-        return None
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
     if settings['model'] == 'LDA':
         model = models.LdaModel.load(file_path)
     if settings['model'] == 'HDP':
@@ -37,11 +37,6 @@ def loadProcessedData(settings):
     dictionary = load_tmp(settings, DICT_FILE)
     return bow_corpus, dictionary, processed_corpus
 
-def loadData(settings):
-    """Load raw data."""
-    corpus_df = load_df(settings, CORPUS_ID_FILE)
-    return corpus_df
-
 
 def getProcessedData(settings, df):
     """Process data from given corpus df. Returns a bag of word, dictionary, and list of list of tokens."""
@@ -51,8 +46,6 @@ def getProcessedData(settings, df):
     save_tmp(settings, BOW_FILE, bow_corpus)
     save_tmp(settings, TOKENS_FILE, processed_corpus)
     save_tmp(settings, DICT_FILE, dictionary)
-    # Dump id info to files for faster loading
-    save_df(settings, CORPUS_ID_FILE, df.drop(settings['corpusFieldName'], axis=1))
     return bow_corpus, dictionary, processed_corpus
 
 

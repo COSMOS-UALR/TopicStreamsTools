@@ -1,5 +1,4 @@
 from ..dataManager import load_tmp, read_data
-from .input import loadData
 
 # Topic distribution a document must meet to belong to a topic. Used to communicate what documents to keep from one node to another if fileterd by topic.
 BELONGING_THRESHOLD = 0.3
@@ -12,6 +11,10 @@ class BaseModel:
         self.IDS_FILE = 'ids.pkl'
         self.belonging_threshold = BELONGING_THRESHOLD
         self.MODEL_FILE = f"{self.settings['model']}_model"
+        self.DISTRIB_FILE = 'distribDataframe.pkl'
+        self.WORDS_FILE = 'wordsDataframe.pkl'
+        self.distributionDF = None
+        self.wordsDF = None
 
 
     def loadData(self):
@@ -25,8 +28,6 @@ class BaseModel:
             print(f"Kept {corpus_df.shape[0]} items.")
         elif self.settings['reloadData']:
             self.corpus_df = read_data(self.settings)
-        else:
-            self.corpus_df = loadData(self.settings)
 
 
     def processData():

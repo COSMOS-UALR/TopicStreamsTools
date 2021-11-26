@@ -16,10 +16,6 @@ class GensimModel(BaseModel):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.DISTRIB_FILE = 'distribDataframe.pkl'
-        self.WORDS_FILE = 'wordsDataframe.pkl'
-        self.distributionDF = None
-        self.wordsDF = None
         self.bow_corpus = None
         self.dictionary = None
         self.settings['coherence_measure'] = self.settings['coherence_measure'] if 'coherence_measure' in self.settings else DEFAULT_COHERENCE
@@ -30,8 +26,12 @@ class GensimModel(BaseModel):
         settings = self.settings
         settings['verbose'] = True
         if not settings['reloadData']:
-            self.bow_corpus, self.dictionary, self.processed_corpus = loadProcessedData(settings)
-        if settings['reloadData'] or self.bow_corpus is None or self.dictionary is None or self.processed_corpus is None:
+            try:
+                self.bow_corpus, self.dictionary, self.processed_corpus = loadProcessedData(settings)
+            except FileNotFoundError as e:
+                print(str(e))
+                settings['reloadData'] = True
+        if settings['reloadData']:
             self.bow_corpus, self.dictionary, self.processed_corpus = getProcessedData(settings, self.corpus_df)
         
 
@@ -39,13 +39,20 @@ class GensimModel(BaseModel):
         """Will attempt to load the model and its associated data, will train and create if they cannot be found or retrainModel is True."""
         print('Attempting to load Dataframes...')
         settings = self.settings
-        self.model = loadModel(settings, self.MODEL_FILE)
-        self.distributionDF = load_df(settings, self.DISTRIB_FILE)
-        self.wordsDF = load_df(settings, self.WORDS_FILE)
-        if settings['reloadData'] or settings['retrainModel'] or self.model is None or self.distributionDF is None or self.wordsDF is None:
+        try:
+            self.model = loadModel(settings, self.MODEL_FILE)
+            self.distributionDF = load_df(settings, self.DISTRIB_FILE)
+            self.wordsDF = load_df(settings, self.WORDS_FILE)
+        except FileNotFoundError as e:
+            print(str(e))
+            settings['retrainModel'] = True
+        if settings['reloadData'] or settings['retrainModel']:
             self.model = self.getModel(settings, self.bow_corpus, self.dictionary, self.processed_corpus)
             print('Calculating Dataframes...')
-            self.distributionDF, self.wordsDF = self.createMatrix(settings, self.model, self.bow_corpus, self.corpus_df)
+            topic_distribution = self.model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
+            theta = self.getTheta(settings, self.model, self.bow_corpus)
+            self.distributionDF = self.getThetaDF(settings, self.bow_corpus, self.corpus_df, topic_distribution, theta)
+            self.wordsDF = self.getTopTopicWords(settings, topic_distribution, theta)
 
 
     def output(self):
@@ -116,7 +123,8 @@ class GensimModel(BaseModel):
         return optimal_model
 
 
-    def get_doc_topic_distributions(self, settings, model, corpus):
+    def getTheta(self, settings, model, corpus):
+        """Get topic distributions for each document, with document id or timestamped as index."""
         topic_distributions = []
         #    alpha = model.hdp_to_lda()[0]
         #    topics_nos = [x[0] for x in shown_topics ]
@@ -148,34 +156,33 @@ class GensimModel(BaseModel):
         return bow_corpus, timestamps
 
 
-    def createMatrix(self, settings, model, bow_corpus, corpusDF):
-        """Return dataframes holding topic distributions for each document"""
+    def getThetaDF(self, settings, bow_corpus, corpusDF, topic_distribution, theta):
+        """Get topic distributions dataframe for each document, with document id or timestamped as index."""
         timestamps = corpusDF.index.values
         if 'idFieldName' in settings:
             ids = corpusDF[settings['idFieldName']].values
         if 'start_date' in settings or 'end_date' in settings:
             bow_corpus, timestamps = self.filterDates(settings, bow_corpus, timestamps)
-        #Topics
-        topic_distribution = model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
         topics = [topic_set[0] for topic_set in topic_distribution]
-        # Output Topic Distribution and Topic Words
-        distribution = self.get_doc_topic_distributions(settings, model, bow_corpus)
-        dominant_topic_counts, dominant_topic_dist = self.get_dominant_topics_counts_and_distribution(distribution)
         # Set IDs as index if defined then insert timestamp. If not, set timestamp as index
-        topic_distrib_df = pd.DataFrame(distribution, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
+        topic_distrib_df = pd.DataFrame(theta, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
         if 'idFieldName' in settings and 'dateFieldName' in settings:
             topic_distrib_df.insert(0, settings['dateFieldName'], timestamps)
+        save_df(settings, self.DISTRIB_FILE, topic_distrib_df)
+    
+    def getTopTopicWords(self, settings, topic_distribution, theta):
+        """Get top words for each topic."""
         topic_data = []
         topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in topic_distribution]
+        dominant_topic_counts, dominant_topic_dist = self.get_dominant_topics_counts_and_distribution(theta)
         for topic, words_list in topics_words:
             topic_data.append(words_list + [dominant_topic_counts[topic]] + [np.around(dominant_topic_dist[topic], 4)])
         headers = [f"Word {i}" for i in range(0,len(words_list))] + ["Topic Count", "Distribution"]
         words_df = pd.DataFrame(topic_data, columns=headers)
         # Sort words by descending topic count
         words_df = words_df.sort_values("Topic Count", ascending=False)
-        save_df(settings, self.DISTRIB_FILE, topic_distrib_df)
         save_df(settings, self.WORDS_FILE, words_df)
-        return topic_distrib_df, words_df
+        return words_df
 
 
     def get_dominant_topics_counts_and_distribution(self, doc_topics):

@@ -1,3 +1,4 @@
+import errno
 import logging as log
 import pandas as pd
 from pathlib import Path
@@ -23,8 +24,7 @@ def save_file(destination, content):
 def load_file(file_path):
     """Load pickled file from path."""
     if not os.path.isfile(file_path):
-        print(f"{file_path} not found.")
-        return None
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
     with open(file_path, 'rb') as f:
         return pickle.load(f)
 
@@ -88,8 +88,7 @@ def load_df(settings, file):
     """Loads dataframe from temporary folder."""
     file_path = getFilePath(settings, file)
     if not os.path.isfile(file_path):
-        print(f"{file_path} not found.")
-        return None
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
     return pd.read_pickle(file_path)
 
 
