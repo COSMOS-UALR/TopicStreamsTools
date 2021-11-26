@@ -1,4 +1,5 @@
 from .gensimModels import LDAModel, LDAMalletModel, HDPModel
+from .biterm import BitermModel
 
 class TopicModelNode:
 
@@ -28,7 +29,8 @@ class TopicModelNode:
         models = {
             'LDA': LDAModel(settings),
             'LDA-Mallet': LDAMalletModel(settings),
-            'HDP': HDPModel(settings)
+            'HDP': HDPModel(settings),
+            'Biterm': BitermModel(settings),
         }
         if settings['model_type'] not in models:
             raise Exception(msg='Invalid model.')
