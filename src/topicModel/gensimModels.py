@@ -2,6 +2,7 @@ from gensim import models
 import numpy as np
 import os
 import pandas as pd
+import pyLDAvis
 import queue, threading
 from tqdm import tqdm
 
@@ -63,7 +64,7 @@ class GensimModel(BaseModel):
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
             saveToExcel(settings, self.distributionDF, self.wordsDF)
             saveFigures(settings, self.distributionDF, self.wordsDF, n=nbFigures)
-            saveInteractivePage(settings, self.model, self.bow_corpus, self.dictionary)
+            saveInteractivePage(settings, self.getLDAVisPreparedData())
         if 'node' in settings['filters']['out']:
             topics = settings['filters']['out']['topics']
             filtered_ids = getIDsInTopics(self.distributionDF, topics, self.belonging_threshold)
@@ -214,6 +215,10 @@ class GensimModel(BaseModel):
         assert np.around(np.sum(dominant_topic_dist), 5) == 1.0
         return dominant_topic_counts, dominant_topic_dist
 
+    def getLDAVisPreparedData(self):
+        return pyLDAvis.gensim_models.prepare(self.model, self.bow_corpus, self.dictionary)
+
+
 class LDAModel(GensimModel):
 
     def createModel(self, model_type, bow_corpus, dictionary, processed_corpus, number_topics):
@@ -238,6 +243,12 @@ class LDAMalletModel(GensimModel):
         coherence_model = self.getCoherenceModel(model, self.settings['coherence_measure'], bow_corpus, processed_corpus, dictionary)
         print(f"Model coherence score: {coherence_model.get_coherence()}")
         return model
+
+    def getLDAVisPreparedData(self):
+        lda_model = models.LdaModel(id2word=self.model.id2word, num_topics=self.model.num_topics, alpha=self.model.alpha, eta=0)
+        lda_model.state.sstats[...] = self.model.wordtopics
+        lda_model.sync_state()
+        return pyLDAvis.gensim_models.prepare(lda_model, self.bow_corpus, self.dictionary)
 
 class HDPModel(GensimModel):
 

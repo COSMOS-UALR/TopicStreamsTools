@@ -163,16 +163,8 @@ def saveCoherencePlot(settings, coherence_values, topics_range, coherence_measur
 ### Interactive Web Page ###
 
 
-def saveInteractivePage(settings, model, bow_corpus, dictionary):
-    # Model needs to be converted to Gensim's LDA if Mallet was used
-    if settings['model_type'] == 'LDA-Mallet':
-        lda_model = models.LdaModel(id2word=model.id2word, num_topics=model.num_topics, alpha=model.alpha, eta=0)
-        lda_model.state.sstats[...] = model.wordtopics
-        lda_model.sync_state()
-    else:
-        lda_model = model
+def saveInteractivePage(settings, prepared_data):
     filename = f"InteractiveLDAvis.html"
     output_dir = getOutputDir(settings)
     path = os.path.join(output_dir, filename)
-    data = pyLDAvis.gensim_models.prepare(lda_model, bow_corpus, dictionary)
-    pyLDAvis.save_html(data, path)
+    pyLDAvis.save_html(prepared_data, path)
