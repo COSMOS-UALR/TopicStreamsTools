@@ -167,3 +167,6 @@ Add label to the x axis.
 
 * **y_label**
 Add label to the y axis.
+
+* **alternate_legend**
+Set to True to display plot legends on the right.

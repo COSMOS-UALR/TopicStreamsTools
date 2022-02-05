@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import random
 from tqdm import tqdm
+import plotly.express as px
 import pyLDAvis
 import pyLDAvis.gensim_models
 
@@ -112,20 +113,39 @@ def saveIndividualPlot(settings, dft, topic, window_size, color, output_dir):
 
 def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, filename=None):
     colors = getColors()
+    x_axis = 'Date'
+    plotly_df = pd.DataFrame(dft.transpose())
+    topics_to_ommit = list(set(plotly_df.columns) - set(topic_group))
+    plotly_df = plotly_df.drop(topics_to_ommit, axis=1)
     for topic in tqdm(topic_group, desc=f"Plotting topic group {topic_group}"):
         df = dft.iloc[topic]
         # Smooth curve
         if window_size > 0:
             df = df.rolling(window_size).mean()
+            plotly_df[topic] = plotly_df[topic].rolling(window_size).mean()
         plot = df.plot(color=next(colors), label=f'Topic {topic}')
+    # Drop NA values fort sorting
+    plotly_df = plotly_df.dropna(axis=0, how='all')
+    # Order columns so the legend displays labels in order of appearance
+    plotly_df = plotly_df[plotly_df.columns[plotly_df.iloc[0].argsort()][::-1]]
+    # Assign x axis label
+    plotly_df = plotly_df.reset_index().rename(columns = {'index': x_axis})
+    plotly_fig = px.line(plotly_df, x=x_axis, y=plotly_df.columns)
+    legend_on_right = settings['alternate_legend'] if 'alternate_legend' in settings else False
     if 'addLegend' in settings and settings['addLegend'] is True:
         box = plot.get_position()
-        plot.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 1])
-        plot.legend(bbox_to_anchor=(0.5, -0.215), loc='upper center', ncol=5)
+        if legend_on_right:
+            plot.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+            plot.legend(bbox_to_anchor=(1, 1), ncol=1)
+        else:
+            plotly_fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="left", x=0.25))
+            plot.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 1])
+            plot.legend(bbox_to_anchor=(0.5, -0.215), loc='upper center', ncol=5)
     fig = plot.get_figure()
     if filename is None:
-        filename = f'{settings["model"]}_Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA.png'
-    fig.savefig(os.path.join(output_dir, filename))
+        filename = f'{settings["model"]}_Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA'
+    plotly_fig.write_html(os.path.join(output_dir, f'{filename}.html'))
+    fig.savefig(os.path.join(output_dir, f'{filename}.png'))
     fig.clf()
 
 
@@ -142,7 +162,7 @@ def saveFigures(settings, topics_df, words_df, n=5):
         saveIndividualPlot(settings, dft, topic, window_size, next(colors), output_dir)
     # Multiple topics
     # Save top topics by default
-    top_topics_filename = f'Top_{n}_Topics_{settings["moving_average_size"]}MA.png'
+    top_topics_filename = f'Top_{n}_Topics_{settings["moving_average_size"]}MA'
     saveOverlappingPlot(settings, dft, selected_topics, window_size, output_dir, top_topics_filename)
     # Optional - save specified topic groups
     if 'topicGroups' in settings:
