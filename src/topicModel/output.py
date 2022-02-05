@@ -102,18 +102,16 @@ def saveIndividualPlot(settings, dft, topic, window_size, color, output_dir):
     if window_size > 0:
         df = df.rolling(window_size).mean()
     plot = df.plot(color=color)
-    if 'x_label' in settings:
-        plot.set_ylabel(settings['x_label'])
-    if 'y_label' in settings:
-        plot.set_ylabel(settings['y_label'])
+    setMatPlotLibOptions(settings, plot)
     fig = plot.get_figure()
     fig.savefig(os.path.join(output_dir, f'{settings["model"]}_Topic_{topic}_{settings["moving_average_size"]}MA.png'))
     fig.clf()
 
 
 def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, filename=None):
+    if filename is None:
+        filename = f'{settings["model"]}_Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA'
     colors = getColors()
-    x_axis = 'Date'
     plotly_df = pd.DataFrame(dft.transpose())
     topics_to_ommit = list(set(plotly_df.columns) - set(topic_group))
     plotly_df = plotly_df.drop(topics_to_ommit, axis=1)
@@ -128,25 +126,39 @@ def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, fil
     plotly_df = plotly_df.dropna(axis=0, how='all')
     # Order columns so the legend displays labels in order of appearance
     plotly_df = plotly_df[plotly_df.columns[plotly_df.iloc[0].argsort()][::-1]]
-    # Assign x axis label
-    plotly_df = plotly_df.reset_index().rename(columns = {'index': x_axis})
-    plotly_fig = px.line(plotly_df, x=x_axis, y=plotly_df.columns)
+    plotly_fig = px.line(plotly_df.reset_index(), x='index', y=plotly_df.columns)
+    setPlotlyOptions(settings, plotly_fig)
+    setMatPlotLibOptions(settings, plot, multiple_lines = True)
+    plotly_fig.write_html(os.path.join(output_dir, f'{filename}.html'))
+    fig = plot.get_figure()
+    fig.savefig(os.path.join(output_dir, f'{filename}.png'))
+    fig.clf()
+
+
+def setPlotlyOptions(settings, plotly_fig):
     legend_on_right = settings['alternate_legend'] if 'alternate_legend' in settings else False
-    if 'addLegend' in settings and settings['addLegend'] is True:
+    if legend_on_right:
+        plotly_fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="left", x=0.25))
+    plotly_fig.update_layout(
+        xaxis_title = settings['x_label'] if 'x_label' in settings else "",
+        yaxis_title = settings['y_label'] if 'y_label' in settings else "Topic's probability distribution",
+        legend_title = "Topics")
+
+
+def setMatPlotLibOptions(settings, plot, multiple_lines = False):
+    legend_on_right = settings['alternate_legend'] if 'alternate_legend' in settings else False
+    if multiple_lines and 'addLegend' in settings and settings['addLegend'] is True:
         box = plot.get_position()
         if legend_on_right:
             plot.set_position([box.x0, box.y0, box.width * 0.8, box.height])
             plot.legend(bbox_to_anchor=(1, 1), ncol=1)
         else:
-            plotly_fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="left", x=0.25))
             plot.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 1])
             plot.legend(bbox_to_anchor=(0.5, -0.215), loc='upper center', ncol=5)
-    fig = plot.get_figure()
-    if filename is None:
-        filename = f'{settings["model"]}_Topics_{"-".join(str(x) for x in topic_group)}_{settings["moving_average_size"]}MA'
-    plotly_fig.write_html(os.path.join(output_dir, f'{filename}.html'))
-    fig.savefig(os.path.join(output_dir, f'{filename}.png'))
-    fig.clf()
+    if 'x_label' in settings:
+        plot.set_ylabel(settings['x_label'])
+    if 'y_label' in settings:
+        plot.set_ylabel(settings['y_label'])
 
 
 def saveFigures(settings, topics_df, words_df, n=5):

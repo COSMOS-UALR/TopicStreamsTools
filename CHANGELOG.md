@@ -7,10 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Add
 - Seamless node switching
 
+## [0.9.3] - 2022-02-04
+### Changed
+- Improved plot options (logic & better axis labels)
+
 ## [0.9.2] - 2022-02-04
 ### Added
 - Interactive plotly output for multiple topics.
-- `alternate_legend` setting will show legends on the right of the plots.
+- `alternate_legend` setting on `True` will show legends on the right of the plots.
 
 ## [0.9.1] - 2021-11-23
 ### Added
