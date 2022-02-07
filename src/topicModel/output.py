@@ -137,6 +137,7 @@ def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, fil
 
 def setPlotlyOptions(settings, plotly_fig):
     legend_on_right = settings['alternate_legend'] if 'alternate_legend' in settings else False
+    plotly_fig.update_xaxes(tickformat="%m-%d-%Y")
     if legend_on_right:
         plotly_fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="left", x=0.25))
     plotly_fig.update_layout(
