@@ -2,6 +2,7 @@ import yaml
 
 from .topicModel.topicModel import TopicModelNode
 from .engagementBehavior.engagementBehavior import EngagementBehaviorNode
+from .commenterNetwork.commenterNetwork import commenterNetwork
 
 
 class Framework:
@@ -20,6 +21,7 @@ class Framework:
                     self.nodes.append(self.nodeFactory(node_settings['node_type'])(self.project_name, node))
 
     def run(self):
+        commenterNetwork()
         # for node in self.nodes:
         #     node.run()
         # self.nodes[2].run()

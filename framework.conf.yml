@@ -76,6 +76,22 @@ routing:
               db: behaviors_on_youtube
           out:
             folder: engagement_results
-    # - node_4:
-    #   node_type: comment_behavior
+    - node_4:
+        node_type: comment_behavior
+        filters:
+          in:
+            # channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
+            channel_ids:
+              - UC0rZoXAD5lxgBHMsjrGwWWQ
+            db_settings:
+              # user: reader
+              # password: $cD&EjmLv_fu$z4e
+              # host: 144.167.35.202
+              # db: youtube_tracker
+              user: db_exporter
+              password: Cosmos1
+              host: 144.167.35.221
+              db: behaviors_on_youtube
+          out:
+            folder: engagement_results
 

@@ -4,6 +4,8 @@ nltk
 pandas==1.3.3
 openpyxl
 matplotlib
+networkx
 tqdm
 pyldavis
 tmplot
+p_tqdm
