@@ -31,8 +31,9 @@ class GensimModel(BaseModel):
                 self.bow_corpus, self.dictionary, self.processed_corpus = loadProcessedData(settings)
             except FileNotFoundError as e:
                 print(str(e))
-                settings['reloadData'] = True
-        if settings['reloadData']:
+                self.settings['reloadData'] = True
+                self.loadData()
+        if self.settings['reloadData']:
             self.bow_corpus, self.dictionary, self.processed_corpus = getProcessedData(settings, self.corpus_df)
         
 
