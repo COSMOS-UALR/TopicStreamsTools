@@ -11,9 +11,9 @@ See the latest changes [here](CHANGELOG.md).
 ## Quick Start
 
 To run the script with the sample dataset:
-1. Install the script's requirements:
+1. Install the script's requirements - it is recommended to do so in a virtual environment with Python 3.8.
 ```python
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 ```
 2. Execute main.py. You may need to wait up to an hour if running the tool for the first time on a large dataset (~1GB). Most sets should be done in minutes. If you encounter errors, check first that the encoding of your file is correct and you have specified the correct JSON orientation if using.
 3. Open the Output/LDA/{datasetName} folder to find your results.
@@ -170,3 +170,8 @@ Add label to the y axis.
 
 * **alternate_legend**
 Set to True to display plot legends on the right.
+
+
+## Some useful references:
+
+* [pyLDAvis: Topic Modelling Exploration Tool That Every NLP Data Scientist Should Know](https://neptune.ai/blog/pyldavis-topic-modelling-exploration-tool-that-every-nlp-data-scientist-should-know)
