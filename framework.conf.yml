@@ -80,18 +80,29 @@ routing:
         node_type: comment_behavior
         filters:
           in:
-            # channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
+            # file: UCaBf1a-dpIsw8OxqH4ki2Kg_Comments.csv
             channel_ids:
-              - UC0rZoXAD5lxgBHMsjrGwWWQ
+            # Stats updated on 03/17/2022
+              - UC0rZoXAD5lxgBHMsjrGwWWQ # Styxhexenhammer666 - 5,299 videos - 2,476,643 comments
+              # - UCZWlSUNDvCCS1hBiXV0zKcA # Prager U - 33 videos - 57,487 comments
+              # - UCGy6uV7yqGWDeUWTZzT3ZEg # Rebel News - 1,367 videos - 9,514 comments
+              # - UCittVh8imKanO_5KohzDbpg # Paul Joseph Watson - 57 videos - 0 comments
+              # - UC4a-Gbdw7vOaccHmFo40b9g # Khan Academy - 4 videos - 3,023 comments
+              # - UCoLrcjPV5PbUrUyXq5mjc_A # MLB - 2 videos - 0 comments
+              # - UCaBf1a-dpIsw8OxqH4ki2Kg # Not in DB
+              # - UC8Y-jrV8oR3s2Ix4viDkZtA # Not in DB
+              # - UCaBf1a-dpIsw8OxqH4ki2Kg # Not in DB
+              # - UCxAICW_LdkfFYwTqTHHE0vg # Not in DB
+              # - UCY30JRSgfhYXA6i6xX1erWg # Not in DB
             db_settings:
-              # user: reader
-              # password: $cD&EjmLv_fu$z4e
-              # host: 144.167.35.202
-              # db: youtube_tracker
-              user: db_exporter
-              password: Cosmos1
-              host: 144.167.35.221
-              db: behaviors_on_youtube
+              user: reader
+              password: $cD&EjmLv_fu$z4e
+              host: 144.167.35.202
+              db: youtube_tracker
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
           out:
             folder: engagement_results
 

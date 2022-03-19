@@ -2,7 +2,7 @@ import yaml
 
 from .topicModel.topicModel import TopicModelNode
 from .engagementBehavior.engagementBehavior import EngagementBehaviorNode
-from .commenterNetwork.commenterNetwork import commenterNetwork
+from .commenterNetwork.commenterNetwork import CommenterNetwork
 
 
 class Framework:
@@ -21,16 +21,16 @@ class Framework:
                     self.nodes.append(self.nodeFactory(node_settings['node_type'])(self.project_name, node))
 
     def run(self):
-        commenterNetwork()
         # for node in self.nodes:
         #     node.run()
         # self.nodes[2].run()
-        self.nodes[0].run()
+        self.nodes[3].run()
 
     def nodeFactory(self, node_type):
         node_builder = {
             'topic_model': TopicModelNode,
             'channel_engagement': EngagementBehaviorNode,
+            'comment_behavior': CommenterNetwork,
         }
         return node_builder.get(node_type)
 

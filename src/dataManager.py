@@ -1,4 +1,5 @@
 import errno
+import humanize
 import logging as log
 import pandas as pd
 from pathlib import Path
@@ -29,10 +30,10 @@ def load_file(file_path):
         return pickle.load(f)
 
 
-def getFilePath(settings, file, skip_node=False):
+def getFilePath(settings, file):
     datasetName = settings['datasetName']
-    node = settings['node']
-    return os.path.join(PROCESSED_DATA_FOLDER, f"{datasetName}_{node if not skip_node else ''}_{file}")
+    skip_node = 'node' not in settings
+    return os.path.join(PROCESSED_DATA_FOLDER, f"{datasetName}_{'' if skip_node else settings['node']}_{file}")
 
 
 def getOutputDir(settings):
@@ -64,13 +65,13 @@ def checkDirectory(output_dir):
 
 def save_tmp(settings, suffix, content):
     """Pickle given structure to temporary folder."""
-    destination = getFilePath(settings, suffix, skip_node=True)
+    destination = getFilePath(settings, suffix)
     save_file(destination, content)
 
 
 def load_tmp(settings, suffix):
     """Load pickled file from temporary folder."""
-    source = getFilePath(settings, suffix, skip_node=True)
+    source = getFilePath(settings, suffix)
     return load_file(source)
 
 
@@ -118,10 +119,13 @@ def get_query(db_settings):
     return query
 
 
-def read_file(settings, dataFile):
+def read_file(settings, dataFile, use_all_columns=False):
     data_type = Path(dataFile).suffix
     encoding = settings['encoding'] if 'encoding' in settings else 'utf-8'
-    selected_columns = [settings['corpusFieldName']]
+    if use_all_columns:
+        selected_columns = None
+    else:
+        selected_columns = [settings['corpusFieldName']]
     if 'dateFieldName' in settings:
         selected_columns.append(settings['dateFieldName'])
     if 'idFieldName' in settings:
@@ -139,8 +143,10 @@ def read_file(settings, dataFile):
     total_items = df.shape[0]
     df.dropna(inplace=True)
     nan_items = total_items - df.shape[0]
-    print(
-        f"Loading {df.shape[0]} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
+    items_loaded = humanize.intcomma(df.shape[0])
+    total_items = humanize.intcomma(total_items)
+    nan_items = humanize.intcomma(nan_items)
+    print(f"Loading {items_loaded} items from {dataFile} - {total_items} total items, {nan_items} NaN values were detected and removed.")
     return df
 
 
@@ -184,3 +190,13 @@ def read_data(settings):
     df = df.set_index([dateFieldName])
     df.sort_index(inplace=True)
     return df
+
+### YOUTUBE ###
+
+def getVideoPublicationHistogram(db_connector, channel_id):
+    """Return video IDs belonging to channel and video publication counts grouped by day."""
+    video_table = 'videos'
+    columns = ['video_id', 'published_date']
+    query = f'SELECT {",".join(columns)} FROM {video_table} WHERE channel_id = "{channel_id}"'
+    video_df = pd.read_sql(query, db_connector)
+    video_ids = list(video_df['video_id'])
