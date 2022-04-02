@@ -8,6 +8,7 @@ from .commenterNetwork.commenterNetwork import CommenterNetwork
 class Framework:
 
     def __init__(self, config) -> None:
+        """Read configuration file and initialize nodes."""
         with open(config, "r") as ymlfile:
             cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
             self.nodes = []
@@ -21,12 +22,14 @@ class Framework:
                     self.nodes.append(self.nodeFactory(node_settings['node_type'])(self.project_name, node))
 
     def run(self):
+        """Execute nodes."""
         # for node in self.nodes:
         #     node.run()
         # self.nodes[2].run()
         self.nodes[3].run()
 
     def nodeFactory(self, node_type):
+        """Build node for each module type."""
         node_builder = {
             'topic_model': TopicModelNode,
             'channel_engagement': EngagementBehaviorNode,
