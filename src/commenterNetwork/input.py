@@ -9,15 +9,16 @@ from ..dataManager import fileExists, get_connection, getFilePath, read_file
 
 
 def loadNetwork(settings, file):
+    """Load the networkx graph from disk."""
     file_path = getFilePath(settings, file)
     if not fileExists(file_path):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
-    G = nx.read_gexf('network.gexf')
+    G = nx.read_gexf(file_path)
     return G
 
 
 def getComments(settings):
-    """Return channel data in analysis-ready format."""
+    """Fetch and return comments data as source-target relationships."""
     df_comments = None
     if 'file' in settings['filters']['in']:
         file = settings['filters']['in']['file']
@@ -66,6 +67,7 @@ def queryVideos(db_connector, channel_id):
 
 
 def countComments(db_connector, comments_table, video_ids):
+    """Return total number of comments available for given video ids."""
     count_query = f'SELECT COUNT(comment_id) FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
     cur = db_connector.cursor()
     cur.execute(count_query)
@@ -73,16 +75,16 @@ def countComments(db_connector, comments_table, video_ids):
 
 
 def queryComments(db_connector, video_ids):
-    """Return comment publication counts grouped by day."""
+    """Return raw comments data available for given video ids."""
     CHUNKSIZE = 1000
     comments_table = 'comments'
     columns = ['comment_id', 'commenter_name', 'commenter_id', 'comment_displayed', 'comment_original', 'likes', 'total_replies', 'published_date', 'updated_date', 'reply_to', 'video_id']
     query = f'SELECT {",".join(columns)} FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
     query += ' LIMIT 100000'
     comments_df = None
-    chunks = pd.read_sql(query, db_connector, columns=columns, chunksize=CHUNKSIZE)
     total_comments = countComments(db_connector, comments_table, video_ids)
-    progress = tqdm(total=total_comments)
+    progress = tqdm(total=total_comments, desc='Collecting comments...')
+    chunks = pd.read_sql(query, db_connector, columns=columns, chunksize=CHUNKSIZE)
     for df in chunks:
         comments_df = pd.concat([comments_df, df])
         progress.set_description(desc=f"Collecting comments : [Last packet size: {humanize.intcomma(df.shape[0])} / Total Comments : {humanize.intcomma(total_comments)}]", refresh=True)
