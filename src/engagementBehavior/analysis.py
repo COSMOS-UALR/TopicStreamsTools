@@ -46,6 +46,27 @@ def create_rolling_window_df(df):
 """# Anomaly Detection"""
 
 
+def trunc_data(df):
+    a = df.columns.values[1]
+    b = df.columns.values[2]
+    c = df.columns.values[3]
+    out_data = df.drop([a, b, c], axis=1)
+    return out_data
+
+
+def compute_and_visualize_anomalies(settings, df_totals, anomaly_type):
+    in_data = trunc_data(df_totals)
+    data, _ = read_modulate_data(in_data)
+    X, Y, T = data_pre_processing(data, settings['lookback_size'])
+    loss = train(X, Y, settings['model'], anomaly_type)
+    loss_df = pd.DataFrame(loss, columns=["loss"])
+    loss_df.index = T
+    loss_df.index = pd.to_datetime(loss_df.index)
+    loss_df["date"] = T
+    loss_df["date"] = pd.to_datetime(loss_df["date"])
+    return loss_df
+
+
 def read_modulate_data(dataframe):
     """Data ingestion - Read and formulate the data."""
     dataframe.fillna(dataframe.mean(numeric_only=True), inplace=True)
@@ -179,27 +200,6 @@ def train(X, Y, model_settings, anomaly_type):
     elif model_settings['type'] == "deepant":
         loss = np.linalg.norm(hypothesis - Y, axis=1)
     return loss.reshape(len(loss), 1)
-
-
-def trunc_data(df):
-    a = df.columns.values[1]
-    b = df.columns.values[2]
-    c = df.columns.values[3]
-    out_data = df.drop([a, b, c], axis=1)
-    return out_data
-
-
-def compute_and_visualize_anomalies(settings, df_totals, anomaly_type):
-    in_data = trunc_data(df_totals)
-    data, _ = read_modulate_data(in_data)
-    X, Y, T = data_pre_processing(data, settings['lookback_size'])
-    loss = train(X, Y, settings['model'], anomaly_type)
-    loss_df = pd.DataFrame(loss, columns=["loss"])
-    loss_df.index = T
-    loss_df.index = pd.to_datetime(loss_df.index)
-    loss_df["date"] = T
-    loss_df["date"] = pd.to_datetime(loss_df["date"])
-    return loss_df
 
 
 def merge_outputs_calc_sse(totals_df, loss_df):
