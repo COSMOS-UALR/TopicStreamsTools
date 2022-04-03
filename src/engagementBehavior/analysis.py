@@ -22,7 +22,7 @@ def showRollingWindow(rolling_df, x, y):
 
 
 def create_rolling_window_df(df):
-    """Append x-y rolling window correlation, and end dates to the dataframe."""
+    """Take timestamped x-y dataframe and rolling window correlation and end dates."""
     date = df.columns.values[0]
     x = df.columns.values[1]
     y = df.columns.values[2]
