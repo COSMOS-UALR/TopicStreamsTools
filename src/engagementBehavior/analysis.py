@@ -8,38 +8,6 @@ from sklearn.preprocessing import MinMaxScaler
 import torch
 from tqdm import tqdm
 
-from ..dataManager import load_df, save_df
-from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-
-
-"""# Compute Anomalies"""
-
-
-def getAnomaly(settings, data, threshold, start_date, anomaly_type, channel_id, columns):
-    """For a single type of anomaly dimension, return its findings TODO <needs more description>."""
-    rolling_df = create_rolling_window_df(data)
-    rolling_df.reset_index(drop=True, inplace=True)
-    rolling_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    rolling_df.fillna(0, inplace=True)
-    loss_df_file = f"{channel_id}_{anomaly_type}.pkl"
-    loss_df = load_df(settings, loss_df_file)
-    if loss_df is None or ('retrain' in settings and settings['retrain']):
-        loss_df = compute_and_visualize_anomalies(settings, rolling_df, anomaly_type)
-        save_df(settings, loss_df_file, loss_df)
-    outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
-    outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
-    outputPeaks(settings, loss_df, channel_id, anomaly_type)
-    analysis_df = merge_outputs_calc_sse(rolling_df, loss_df)
-    anomalies = extract_anomaly_list(threshold, start_date, analysis_df)
-    aggregated_anomalies = aggregate_anomalies(anomalies)
-    out_df = aggregated_anomalies.copy()
-    out_df = pd.DataFrame(
-        data=[[pd.to_datetime(rolling_df['date'][0]), pd.to_datetime(rolling_df['end_date'][(rolling_df.shape[0] - 1)]),
-               str(pd.to_datetime(rolling_df['end_date'][(rolling_df.shape[0] - 1)]) - pd.to_datetime(
-                   rolling_df['date'][0])).replace(' 00:00:00', ""),
-               '0', '0', float(0), float(0), float(0)]], columns=columns)
-    return transform_anomaly_output(out_df, anomaly_type, channel_id)
-
 
 """# Rolling Window"""
 
@@ -85,14 +53,6 @@ def create_rolling_window_df(data):
 
 
 """# Anomaly Detection"""
-
-
-def trunc_data(df):
-    a = df.columns.values[1]
-    b = df.columns.values[2]
-    c = df.columns.values[3]
-    out_data = df.drop([a, b, c], axis=1)
-    return out_data
 
 
 def read_modulate_data(dataframe):
@@ -230,9 +190,17 @@ def train(X, Y, model_settings, anomaly_type):
     return loss.reshape(len(loss), 1)
 
 
+def trunc_data(df):
+    a = df.columns.values[1]
+    b = df.columns.values[2]
+    c = df.columns.values[3]
+    out_data = df.drop([a, b, c], axis=1)
+    return out_data
+
+
 def compute_and_visualize_anomalies(settings, df_totals, anomaly_type):
     in_data = trunc_data(df_totals)
-    data, _data = read_modulate_data(in_data)
+    data, _ = read_modulate_data(in_data)
     X, Y, T = data_pre_processing(data, settings['lookback_size'])
     loss = train(X, Y, settings['model'], anomaly_type)
     loss_df = pd.DataFrame(loss, columns=["loss"])
