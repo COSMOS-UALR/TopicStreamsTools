@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from ..dataManager import fileExists, get_connection, getFilePath, read_file
+from ..dataManager import fileExists, get_connection, getFilePath, read_file, fetchData, countQueryItems
 
 
 def loadNetwork(settings, file):
@@ -66,27 +66,16 @@ def queryVideos(db_connector, channel_id):
     return list(video_df['video_id'])
 
 
-def countComments(db_connector, comments_table, video_ids):
-    """Return total number of comments available for given video ids."""
-    count_query = f'SELECT COUNT(comment_id) FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
-    cur = db_connector.cursor()
-    cur.execute(count_query)
-    return cur.fetchall()[-1][-1]
-
-
 def queryComments(db_connector, video_ids):
     """Return raw comments data available for given video ids."""
     CHUNKSIZE = 1000
     comments_table = 'comments'
-    columns = ['comment_id', 'commenter_name', 'commenter_id', 'comment_displayed', 'comment_original', 'likes', 'total_replies', 'published_date', 'updated_date', 'reply_to', 'video_id']
-    query = f'SELECT {",".join(columns)} FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
+    # columns = ['comment_id', 'commenter_name', 'commenter_id', 'comment_displayed', 'comment_original', 'likes', 'total_replies', 'published_date', 'updated_date', 'reply_to', 'video_id']
+    columns = ['commenter_id', 'video_id']
+    query_filter = f'FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
+    query_count = f'SELECT COUNT(comment_id) ' + query_filter
+    query = f'SELECT {",".join(columns)} ' + query_filter
     query += ' LIMIT 100000'
-    comments_df = None
-    total_comments = countComments(db_connector, comments_table, video_ids)
-    progress = tqdm(total=total_comments, desc='Collecting comments...')
-    chunks = pd.read_sql(query, db_connector, columns=columns, chunksize=CHUNKSIZE)
-    for df in chunks:
-        comments_df = pd.concat([comments_df, df])
-        progress.set_description(desc=f"Collecting comments : [Last packet size: {humanize.intcomma(df.shape[0])} / Total Comments : {humanize.intcomma(total_comments)}]", refresh=True)
-        progress.update(CHUNKSIZE)
+    total_comments = countQueryItems(db_connector, query_count)
+    comments_df = fetchData(db_connector, query, comments_table, columns, CHUNKSIZE, total_comments)
     return comments_df
