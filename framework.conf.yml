@@ -70,10 +70,14 @@ routing:
               - UC0rZoXAD5lxgBHMsjrGwWWQ
               # - UC4a-Gbdw7vOaccHmFo40b9g
             db_settings:
-              user: db_exporter
-              password: Cosmos1
-              host: 144.167.35.221
-              db: behaviors_on_youtube
+              user: reader
+              password: $cD&EjmLv_fu$z4e
+              host: 144.167.35.202
+              db: youtube_tracker
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
           out:
             folder: engagement_results
     - node_4:
