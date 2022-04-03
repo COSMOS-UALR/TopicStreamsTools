@@ -49,29 +49,26 @@ class EngagementBehaviorNode:
     def getAnomaly(self, data, threshold, start_date, anomaly_type, channel_id, columns):
         """For a single type of anomaly dimension, return its findings TODO <needs more description>."""
         settings = self.settings
-        rolling_df = create_rolling_window_df(data)
-        rolling_df.reset_index(drop=True, inplace=True)
-        rolling_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-        rolling_df.fillna(0, inplace=True)
+        df = create_rolling_window_df(data)
         loss_df_file = f"{channel_id}_{anomaly_type}.pkl"
         try:
             loss_df = load_df(settings, loss_df_file)
         except FileNotFoundError:
             loss_df = None
         if loss_df is None or ('retrain' in settings and settings['retrain']):
-            loss_df = compute_and_visualize_anomalies(settings, rolling_df, anomaly_type)
+            loss_df = compute_and_visualize_anomalies(settings, df, anomaly_type)
             save_df(settings, loss_df_file, loss_df)
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
-        analysis_df = merge_outputs_calc_sse(rolling_df, loss_df)
+        analysis_df = merge_outputs_calc_sse(df, loss_df)
         anomalies = extract_anomaly_list(threshold, start_date, analysis_df)
         aggregated_anomalies = aggregate_anomalies(anomalies)
         out_df = aggregated_anomalies.copy()
         out_df = pd.DataFrame(
-            data=[[pd.to_datetime(rolling_df['date'][0]),
-                pd.to_datetime(rolling_df['end_date'][(rolling_df.shape[0] - 1)]),
-                str(pd.to_datetime(rolling_df['end_date'][(rolling_df.shape[0] - 1)]) - pd.to_datetime(rolling_df['date'][0]))
+            data=[[pd.to_datetime(df['date'][0]),
+                pd.to_datetime(df['end_date'][(df.shape[0] - 1)]),
+                str(pd.to_datetime(df['end_date'][(df.shape[0] - 1)]) - pd.to_datetime(df['date'][0]))
                     .replace(' 00:00:00', ""), '0', '0', float(0), float(0), float(0)]
                 ], columns=columns)
         return transform_anomaly_output(out_df, anomaly_type, channel_id)

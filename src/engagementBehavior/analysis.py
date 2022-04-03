@@ -21,24 +21,26 @@ def showRollingWindow(rolling_df, x, y):
     plt.suptitle('Rolling Window Correlation')
 
 
-def create_rolling_window_df(data):
+def create_rolling_window_df(df):
     """Append x-y rolling window correlation, and end dates to the dataframe."""
-    date = data.columns.values[0]
-    x = data.columns.values[1]
-    y = data.columns.values[2]
+    date = df.columns.values[0]
+    x = df.columns.values[1]
+    y = df.columns.values[2]
     indexer = pd.api.indexers.FixedForwardWindowIndexer(window_size=100)
-    rolling_df = data[x].rolling(window=indexer, min_periods=100).corr(data[y])
+    rolling_df = df[x].rolling(window=indexer, min_periods=100).corr(df[y])
     # showRollingWindow(rolling_df, x, y)
     rolling_df = rolling_df.to_frame()
     rolling_df.columns = ['corr_value']
-    out_data = pd.concat((data, rolling_df), axis=1)
-    end_dates_list = [out_data['date'][i + 99] if len(out_data) - 99 > i else np.NaN for i in range(len(out_data))]
-    out_data['end_date'] = end_dates_list
-    out_data.dropna(how='any', inplace=True)
-    correlation = out_data.columns.values[3]
-    end_date = out_data.columns.values[4]
+    out_df = pd.concat((df, rolling_df), axis=1)
+    length = out_df.shape[0]
+    end_dates_list = [out_df['date'][i + 99] if length - 99 > i else np.NaN for i in range(length)]
+    out_df['end_date'] = end_dates_list
+    out_df.dropna(how='any', inplace=True)
+    correlation = out_df.columns.values[3]
+    end_date = out_df.columns.values[4]
     cols = [date, end_date, x, y, correlation]
-    return out_data[cols]
+    out_df = out_df[cols].reset_index(drop=True)
+    return out_df.replace([np.inf, -np.inf], np.nan).fillna(0)
 
 
 """# Anomaly Detection"""
