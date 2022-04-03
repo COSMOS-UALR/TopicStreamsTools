@@ -84,27 +84,27 @@ class EngagementBehaviorNode:
         start_date = settings['filters']['in']['start_date'] if 'start_date' in settings['filters']['in'] else None
         # Views subs
         columns = ['start_date', 'end_date', 'duration', 'avg_views', 'avg_subscribers', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        views_subs_data = data[['date', 'daily_views', 'daily_subscribers', 'total_views', 'total_subscribers']]
+        views_subs_data = data[['date', 'total_views', 'total_subscribers']]
         views_subs_transformed_anomalies = self.getAnomaly(views_subs_data, threshold, start_date, 'views_subs', channel_id, columns)
         # Views videos
         columns = ['start_date', 'end_date', 'duration', 'avg_views', 'avg_videos', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        views_videos_data = data[['date', 'daily_views', 'daily_videos', 'total_views', 'total_videos']]
+        views_videos_data = data[['date', 'total_views', 'total_videos']]
         views_videos_transformed_anomalies = self.getAnomaly(views_videos_data, threshold, start_date, 'views_videos', channel_id, columns)
         # Views comments
         columns = ['start_date', 'end_date', 'duration', 'avg_views', 'avg_comments', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        views_comments_data = data[['date', 'daily_views', 'daily_comments', 'total_views', 'total_comments']]
+        views_comments_data = data[['date', 'total_views', 'total_comments']]
         views_comments_transformed_anomalies = self.getAnomaly(views_comments_data, threshold, start_date, 'views_comments', channel_id, columns)
         # Subs videos
         columns = ['start_date', 'end_date', 'duration', 'avg_subscribers', 'avg_videos', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        subs_videos_data = data[['date', 'daily_subscribers', 'daily_videos', 'total_subscribers', 'total_videos']]
+        subs_videos_data = data[['date', 'total_subscribers', 'total_videos']]
         subs_videos_transformed_anomalies = self.getAnomaly(subs_videos_data, threshold, start_date, 'subs_videos', channel_id, columns)
         # Subs comments
         columns = ['start_date', 'end_date', 'duration', 'avg_subscribers', 'avg_comments', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        subs_comments_data = data[['date', 'daily_subscribers', 'daily_comments', 'total_subscribers', 'total_comments']]
+        subs_comments_data = data[['date', 'total_subscribers', 'total_comments']]
         subs_comments_transformed_anomalies = self.getAnomaly(subs_comments_data, threshold, start_date, 'subs_comments', channel_id, columns)
         # Video comments
         columns = ['start_date', 'end_date', 'duration', 'avg_videos', 'avg_comments', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
-        videos_comments_data = data[['date', 'daily_videos', 'daily_comments', 'total_videos', 'total_comments']]
+        videos_comments_data = data[['date', 'total_videos', 'total_comments']]
         videos_comments_transformed_anomalies = self.getAnomaly(videos_comments_data, threshold, start_date, 'videos_comments', channel_id, columns)
         # Combination
         fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']

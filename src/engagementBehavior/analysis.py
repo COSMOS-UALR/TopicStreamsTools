@@ -12,44 +12,33 @@ from tqdm import tqdm
 """# Rolling Window"""
 
 
-def compute_rolling_window(data):
-    df_copy = data.copy()
-    indexer = pd.api.indexers.FixedForwardWindowIndexer(window_size=100)
-    x = df_copy.columns.values[3]
-    y = df_copy.columns.values[4]
-    rolling_window = df_copy[x].rolling(window=indexer, min_periods=100).corr(df_copy[y])
-    f, ax = plt.subplots(figsize=(14, 6))
-    rolling_window.plot(ax=ax)
+def showRollingWindow(rolling_df, x, y):
+    """Plot the rolling window graph."""
+    _, ax = plt.subplots(figsize=(14, 6))
+    rolling_df.plot(ax=ax)
     ax.set(xlabel='Frame', ylabel='Pearson r')
     ax.set_title(x + " vs " + y)
     plt.suptitle('Rolling Window Correlation')
-    return rolling_window
 
 
 def create_rolling_window_df(data):
-    rolling_df = compute_rolling_window(data).to_frame()
+    """Append x-y rolling window correlation, and end dates to the dataframe."""
+    date = data.columns.values[0]
+    x = data.columns.values[1]
+    y = data.columns.values[2]
+    indexer = pd.api.indexers.FixedForwardWindowIndexer(window_size=100)
+    rolling_df = data[x].rolling(window=indexer, min_periods=100).corr(data[y])
+    # showRollingWindow(rolling_df, x, y)
+    rolling_df = rolling_df.to_frame()
     rolling_df.columns = ['corr_value']
     out_data = pd.concat((data, rolling_df), axis=1)
-    end_dates_list = []
-    for x in range(len(out_data)):
-        end_date_index = x + 99
-        try:
-            end_dates_list.append(out_data['date'][end_date_index])
-        except:
-            end_dates_list.append(np.NaN)
+    end_dates_list = [out_data['date'][i + 99] if len(out_data) - 99 > i else np.NaN for i in range(len(out_data))]
     out_data['end_date'] = end_dates_list
     out_data.dropna(how='any', inplace=True)
-    x1 = out_data.columns.values[1]
-    x2 = out_data.columns.values[2]
-    out_data_total = out_data.drop([x1, x2], axis=1)
-    a = out_data_total.columns.values[0]
-    b = out_data_total.columns.values[4]
-    c = out_data_total.columns.values[1]
-    d = out_data_total.columns.values[2]
-    e = out_data_total.columns.values[3]
-    cols = [a, b, c, d, e]
-    out_data_total = out_data_total[cols]
-    return out_data_total
+    correlation = out_data.columns.values[3]
+    end_date = out_data.columns.values[4]
+    cols = [date, end_date, x, y, correlation]
+    return out_data[cols]
 
 
 """# Anomaly Detection"""
