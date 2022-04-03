@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Add
 - Seamless node switching
 
+## [0.10.0] - 2022-02-04
+### Added
+- Commenter Network Node
+
 ## [0.9.4] - 2022-02-07
 ### Changed
 - Date ticks display for Plotly. Some useful resources for further customization are [this guide](https://plotly.com/python/time-series/#configuring-tick-labels) and [the documentation](https://plotly.com/python/reference/layout/xaxis/). See the `setPlotlyOptions` method to customize.
