@@ -44,6 +44,25 @@ def create_rolling_window_df(df, x, y):
 """# Anomaly Detection"""
 
 
+def getAnomalyDF(corr_df, loss_df, threshold, start_date):
+    """Given the correlation df & loss df, compute square of square errors, tag as anomalous if over threshold and after start_date (if non null), and filter out non anomalies."""
+    df = corr_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
+    df['sse'] = df['corr_value'].apply(lambda x: (1 - x) ** 2)
+    if start_date:
+        anomaly_list = [1 if x[6] > float(threshold) and x[2] > start_date else 0 for x in df.itertuples()]
+    else:
+        anomaly_list = [1 if x[6] > float(threshold) else 0 for x in df.itertuples()]
+    df['is_anomaly'] = anomaly_list
+    df.sort_values('is_anomaly', ascending=False, inplace=True)
+    df.where(df['is_anomaly'] == 1, inplace=True)
+    df.dropna(how='all', inplace=True)
+    df.sort_values('date', ascending=True, inplace=True)
+    return df
+
+
+### Models and Training ###
+
+
 def data_pre_processing(df, lookback_size):
     """Data pre-processing - Create data for Model"""
     df = df.fillna(df.mean(numeric_only=True))
@@ -62,9 +81,6 @@ def data_pre_processing(df, lookback_size):
         for j in range(i - lookback_size + 1, i + 1):
             X[i - lookback_size + 1][lookback_size - 1 - i + j] = _data_[j]
     return X, Y, timesteps
-
-
-### Models and Training ###
 
 
 class DeepAnT(torch.nn.Module):
@@ -173,22 +189,6 @@ def train(X, Y, model_settings, anomaly_type):
 
 
 """# Anomaly Aggregation"""
-
-
-def getAnomalyDF(corr_df, loss_df, threshold, start_date):
-    """Given the correlation df & loss df, compute square of square errors, tag as anomalous if over threshold and after start_date (if non null), and filter out non anomalies."""
-    df = corr_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
-    df['sse'] = df['corr_value'].apply(lambda x: (1 - x) ** 2)
-    if start_date:
-        anomaly_list = [1 if x[6] > float(threshold) and x[2] > start_date else 0 for x in df.itertuples()]
-    else:
-        anomaly_list = [1 if x[6] > float(threshold) else 0 for x in df.itertuples()]
-    df['is_anomaly'] = anomaly_list
-    df.sort_values('is_anomaly', ascending=False, inplace=True)
-    df.where(df['is_anomaly'] == 1, inplace=True)
-    df.dropna(how='all', inplace=True)
-    df.sort_values('date', ascending=True, inplace=True)
-    return df
 
 
 def aggregate_anomalies(anomaly_df, x, y):
