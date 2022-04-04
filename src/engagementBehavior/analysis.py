@@ -1,4 +1,3 @@
-from datetime import timedelta
 import humanize
 import math
 import matplotlib.pyplot as plt
@@ -80,30 +79,31 @@ def getLossDF(settings, anomaly_type, channel_id, df):
 """# Anomaly Aggregation"""
 
 
-def aggregate_anomalies(anomaly_df, x, y):
-    anomaly_df.reset_index(inplace=True, drop=True)
-    anomaly_df['date'] = pd.to_datetime(anomaly_df['date'])
-    anomaly_df['end_date'] = pd.to_datetime(anomaly_df['end_date'])
+def getIndicesList(df, time_frame):
+    """Based on the given time frame to aggregate on, return tuple of the df with format '(starting index, ending index, duration as string)'."""
     indices_list = []
     start_date_index = 0
     end_date_index = 0
-    for i in range(1, len(anomaly_df)):
-        duration = anomaly_df['date'][i] - anomaly_df['date'][start_date_index]
-        if duration < timedelta(100):
+    for i in range(1, len(df)):
+        duration = df['date'][i] - df['date'][start_date_index]
+        if duration < time_frame:
             end_date_index = i
         else:
             indices_list.append((start_date_index, end_date_index,
-                str(anomaly_df['end_date'][end_date_index] - anomaly_df['date'][start_date_index])
+                str(df['end_date'][end_date_index] - df['date'][start_date_index])
                 .replace(' 00:00:00', "")))
             start_date_index = i
             end_date_index = i
     indices_list.append((start_date_index, end_date_index,
-        str(anomaly_df['end_date'][end_date_index] - anomaly_df['date'][start_date_index])
+        str(df['end_date'][end_date_index] - df['date'][start_date_index])
         .replace(' 00:00:00', "")))
-    return buildAnomalyStats(anomaly_df, indices_list, x, y)
+    return indices_list
 
 
-def buildAnomalyStats(anomaly_df, indices_list, x, y):
+def buildAnomalyStats(anomaly_df, x, y, time_frame):
+    """Based on the given time frame, compute average values for the anomaly df."""
+    anomaly_df.reset_index(inplace=True, drop=True)
+    indices_list = getIndicesList(anomaly_df, time_frame)
     col_a_name = x.split('_')[1]
     col_b_name = y.split('_')[1]
     anomaly_df_list = []
@@ -118,12 +118,8 @@ def buildAnomalyStats(anomaly_df, indices_list, x, y):
         avg_sse = math.sqrt(np.sum(anomaly_df['sse'][item[0]:item[1] + 1])) / len(
             anomaly_df['sse'][item[0]:item[1] + 1])
         anomaly_df_list.append((start_date, end_date, duration, avg_a, avg_b, min_corr, max_score, avg_sse))
-    df_anomalies = pd.DataFrame(columns=['start_date', 'end_date', 'duration', 'avg_' + col_a_name, 'avg_' + col_b_name,
-                                         'min_corr', 'max_anomaly_score', 'avg_sse'])
-    for data in anomaly_df_list:
-        series = pd.Series(data, index=df_anomalies.columns)
-        df_anomalies = df_anomalies.append(series, ignore_index=True)
-    return df_anomalies
+    return pd.DataFrame(anomaly_df_list, columns=['start_date', 'end_date',
+        'duration', 'avg_' + col_a_name, 'avg_' + col_b_name, 'min_corr', 'max_anomaly_score', 'avg_sse'])
 
 
 """# Combine Anomalies"""

@@ -1,3 +1,4 @@
+from datetime import timedelta
 import numpy as np
 import os
 import pandas as pd
@@ -5,7 +6,7 @@ import pandas as pd
 from ..dataManager import getOutputDir
 from .input import getChannelData
 from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, aggregate_anomalies, transform_anomaly_output
+from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, buildAnomalyStats, transform_anomaly_output
 
 class EngagementBehaviorNode:
 
@@ -58,7 +59,8 @@ class EngagementBehaviorNode:
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
         anomaly_df = getAnomalyDF(df, loss_df, threshold, start_date)
-        aggregated_anomalies = aggregate_anomalies(anomaly_df, x, y)
+        anomaly_aggregation_timeframe = timedelta(days=100)
+        aggregated_anomalies = buildAnomalyStats(anomaly_df, x, y, anomaly_aggregation_timeframe)
         out_df = aggregated_anomalies.copy()
         out_df = pd.DataFrame(data=[
                     [pd.to_datetime(df['date'][0]),
