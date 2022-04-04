@@ -21,11 +21,9 @@ def showRollingWindow(rolling_df, x, y):
     plt.suptitle('Rolling Window Correlation')
 
 
-def create_rolling_window_df(df):
-    """Take timestamped x-y dataframe and rolling window correlation and end dates."""
+def create_rolling_window_df(df, x, y):
+    """Take timestamped x-y dataframe and append rolling window correlation and end dates."""
     date = df.columns.values[0]
-    x = df.columns.values[1]
-    y = df.columns.values[2]
     indexer = pd.api.indexers.FixedForwardWindowIndexer(window_size=100)
     rolling_df = df[x].rolling(window=indexer, min_periods=100).corr(df[y])
     # showRollingWindow(rolling_df, x, y)
@@ -46,55 +44,24 @@ def create_rolling_window_df(df):
 """# Anomaly Detection"""
 
 
-def trunc_data(df):
-    a = df.columns.values[1]
-    b = df.columns.values[2]
-    c = df.columns.values[3]
-    out_data = df.drop([a, b, c], axis=1)
-    return out_data
-
-
-def compute_and_visualize_anomalies(settings, df_totals, anomaly_type):
-    in_data = trunc_data(df_totals)
-    data, _ = read_modulate_data(in_data)
-    X, Y, T = data_pre_processing(data, settings['lookback_size'])
-    loss = train(X, Y, settings['model'], anomaly_type)
-    loss_df = pd.DataFrame(loss, columns=["loss"])
-    loss_df.index = T
-    loss_df.index = pd.to_datetime(loss_df.index)
-    loss_df["date"] = T
-    loss_df["date"] = pd.to_datetime(loss_df["date"])
-    return loss_df
-
-
-def read_modulate_data(dataframe):
-    """Data ingestion - Read and formulate the data."""
-    dataframe.fillna(dataframe.mean(numeric_only=True), inplace=True)
-    df = dataframe.copy()
-    dataframe.set_index("date", inplace=True)
-    dataframe.index = pd.to_datetime(dataframe.index)
-    return dataframe, df
-
-
 def data_pre_processing(df, lookback_size):
     """Data pre-processing - Create data for Model"""
-    try:
-        scaled_data = MinMaxScaler(feature_range=(0, 1))
-        data_scaled_ = scaled_data.fit_transform(df)
-        df.loc[:, :] = data_scaled_
-        _data_ = df.to_numpy(copy=True)
-        X = np.zeros(shape=(df.shape[0] - lookback_size, lookback_size, df.shape[1]))
-        Y = np.zeros(shape=(df.shape[0] - lookback_size, df.shape[1]))
-        timesteps = []
-        for i in range(lookback_size - 1, df.shape[0] - 1):
-            timesteps.append(df.index[i])
-            Y[i - lookback_size + 1] = _data_[i + 1]
-            for j in range(i - lookback_size + 1, i + 1):
-                X[i - lookback_size + 1][lookback_size - 1 - i + j] = _data_[j]
-        return X, Y, timesteps
-    except Exception as e:
-        print("Error while performing data pre-processing : {0}".format(e))
-        return None, None, None
+    df = df.fillna(df.mean(numeric_only=True))
+    df.set_index("date", inplace=True)
+    df.index = pd.to_datetime(df.index)
+    scaled_data = MinMaxScaler(feature_range=(0, 1))
+    data_scaled_ = scaled_data.fit_transform(df)
+    df.loc[:, :] = data_scaled_
+    _data_ = df.to_numpy(copy=True)
+    X = np.zeros(shape=(df.shape[0] - lookback_size, lookback_size, df.shape[1]))
+    Y = np.zeros(shape=(df.shape[0] - lookback_size, df.shape[1]))
+    timesteps = []
+    for i in range(lookback_size - 1, df.shape[0] - 1):
+        timesteps.append(df.index[i])
+        Y[i - lookback_size + 1] = _data_[i + 1]
+        for j in range(i - lookback_size + 1, i + 1):
+            X[i - lookback_size + 1][lookback_size - 1 - i + j] = _data_[j]
+    return X, Y, timesteps
 
 
 class DeepAnT(torch.nn.Module):

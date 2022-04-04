@@ -5,7 +5,7 @@ import pandas as pd
 from ..dataManager import getOutputDir, load_df, save_df
 from .input import getChannelData
 from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, compute_and_visualize_anomalies, merge_outputs_calc_sse, extract_anomaly_list, aggregate_anomalies, transform_anomaly_output
+from .analysis import create_rolling_window_df, train, data_pre_processing, merge_outputs_calc_sse, extract_anomaly_list, aggregate_anomalies, transform_anomaly_output
 
 class EngagementBehaviorNode:
 
@@ -49,15 +49,11 @@ class EngagementBehaviorNode:
     def getAnomaly(self, data, threshold, start_date, anomaly_type, channel_id, columns):
         """For a single type of anomaly dimension, return its findings TODO <needs more description>."""
         settings = self.settings
-        df = create_rolling_window_df(data)
-        loss_df_file = f"{channel_id}_{anomaly_type}.pkl"
-        try:
-            loss_df = load_df(settings, loss_df_file)
-        except FileNotFoundError:
-            loss_df = None
-        if loss_df is None or ('retrain' in settings and settings['retrain']):
-            loss_df = compute_and_visualize_anomalies(settings, df, anomaly_type)
-            save_df(settings, loss_df_file, loss_df)
+        x = data.columns.values[1]
+        y = data.columns.values[2]
+        df = create_rolling_window_df(data, x, y)
+        end_date = df.columns.values[1]
+        loss_df = self.getLossDF(anomaly_type, channel_id, df.drop([end_date, x, y], axis=1))
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
@@ -65,13 +61,32 @@ class EngagementBehaviorNode:
         anomalies = extract_anomaly_list(threshold, start_date, analysis_df)
         aggregated_anomalies = aggregate_anomalies(anomalies)
         out_df = aggregated_anomalies.copy()
-        out_df = pd.DataFrame(
-            data=[[pd.to_datetime(df['date'][0]),
-                pd.to_datetime(df['end_date'][(df.shape[0] - 1)]),
-                str(pd.to_datetime(df['end_date'][(df.shape[0] - 1)]) - pd.to_datetime(df['date'][0]))
-                    .replace(' 00:00:00', ""), '0', '0', float(0), float(0), float(0)]
+        out_df = pd.DataFrame(data=[
+                    [pd.to_datetime(df['date'][0]),
+                     pd.to_datetime(df['end_date'][(df.shape[0] - 1)]),
+                     str(pd.to_datetime(df['end_date'][(df.shape[0] - 1)]) - pd.to_datetime(df['date'][0]))
+                         .replace(' 00:00:00', ""), '0', '0', float(0), float(0), float(0)
+                    ]
                 ], columns=columns)
         return transform_anomaly_output(out_df, anomaly_type, channel_id)
+
+
+    def getLossDF(self, anomaly_type, channel_id, df):
+        """For the given channel_id's df, will attempt to load the loss dataframe, or will retrain a model."""
+        settings = self.settings
+        loss_df_file = f"{channel_id}_{anomaly_type}.pkl"
+        try:
+            loss_df = load_df(settings, loss_df_file)
+        except FileNotFoundError:
+            loss_df = None
+        if loss_df is None or ('retrain' in settings and settings['retrain']):
+            X, Y, T = data_pre_processing(df, settings['lookback_size'])
+            loss = train(X, Y, settings['model'], anomaly_type)
+            # Adjust index and date column for later plotting
+            loss_df = pd.DataFrame(loss, columns=["loss"], index=pd.to_datetime(T))
+            loss_df["date"] = pd.to_datetime(T)
+            save_df(settings, loss_df_file, loss_df)
+        return loss_df
 
 
     def getCombinedAnomalies(self, data, channel_id):
