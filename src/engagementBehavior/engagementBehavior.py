@@ -5,7 +5,7 @@ import pandas as pd
 from ..dataManager import getOutputDir, load_df, save_df
 from .input import getChannelData
 from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, extract_anomaly_list, train, data_pre_processing, aggregate_anomalies, transform_anomaly_output
+from .analysis import create_rolling_window_df, getAnomalyDF, train, data_pre_processing, aggregate_anomalies, transform_anomaly_output
 
 class EngagementBehaviorNode:
 
@@ -57,7 +57,7 @@ class EngagementBehaviorNode:
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
-        anomaly_df = extract_anomaly_list(df, loss_df, threshold, start_date)
+        anomaly_df = getAnomalyDF(df, loss_df, threshold, start_date)
         aggregated_anomalies = aggregate_anomalies(anomaly_df, x, y)
         out_df = aggregated_anomalies.copy()
         out_df = pd.DataFrame(data=[
@@ -92,7 +92,7 @@ class EngagementBehaviorNode:
         """Generate anomaly dataframe for each dimension and return combined dataframe."""
         settings = self.settings
         threshold = settings['threshold']
-        start_date = settings['filters']['in']['start_date'] if 'start_date' in settings['filters']['in'] else None
+        start_date = pd.to_datetime(settings['filters']['in']['start_date']) if 'start_date' in settings['filters']['in'] else None
         # Views subs
         columns = ['start_date', 'end_date', 'duration', 'avg_views', 'avg_subscribers', 'avg_corr', 'avg_anomaly_score', 'avg_sse']
         views_subs_data = data[['date', 'total_views', 'total_subscribers']]

@@ -175,19 +175,20 @@ def train(X, Y, model_settings, anomaly_type):
 """# Anomaly Aggregation"""
 
 
-def extract_anomaly_list(totals_df, loss_df, threshold, start_date):
-    analysis_df = totals_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
-    analysis_df['sse'] = analysis_df['corr_value'].apply(lambda x: (1 - x) ** 2)
-    anomaly_list = [1 if x[6] > float(threshold) and x[2] > pd.to_datetime(start_date) else 0 for x in
-                    analysis_df.itertuples()]
-    analysis_df['is_anomaly'] = anomaly_list
-    anomaly_df = analysis_df.copy()
-    anomaly_df.sort_values('is_anomaly', ascending=False, inplace=True)
-    filter = anomaly_df['is_anomaly'] == 1
-    anomaly_df.where(filter, inplace=True)
-    anomaly_df = anomaly_df.dropna(how='all')
-    anomaly_df.sort_values('date', ascending=True, inplace=True)
-    return anomaly_df
+def getAnomalyDF(corr_df, loss_df, threshold, start_date):
+    """Given the correlation df & loss df, compute square of square errors, tag as anomalous if over threshold and after start_date (if non null), and filter out non anomalies."""
+    df = corr_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
+    df['sse'] = df['corr_value'].apply(lambda x: (1 - x) ** 2)
+    if start_date:
+        anomaly_list = [1 if x[6] > float(threshold) and x[2] > start_date else 0 for x in df.itertuples()]
+    else:
+        anomaly_list = [1 if x[6] > float(threshold) else 0 for x in df.itertuples()]
+    df['is_anomaly'] = anomaly_list
+    df.sort_values('is_anomaly', ascending=False, inplace=True)
+    df.where(df['is_anomaly'] == 1, inplace=True)
+    df.dropna(how='all', inplace=True)
+    df.sort_values('date', ascending=True, inplace=True)
+    return df
 
 
 def aggregate_anomalies(anomaly_df, x, y):
