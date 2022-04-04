@@ -61,15 +61,7 @@ class EngagementBehaviorNode:
         anomaly_df = getAnomalyDF(df, loss_df, threshold, start_date)
         anomaly_aggregation_timeframe = timedelta(days=100)
         aggregated_anomalies = buildAnomalyStats(anomaly_df, x, y, anomaly_aggregation_timeframe)
-        out_df = aggregated_anomalies.copy()
-        out_df = pd.DataFrame(data=[
-                    [pd.to_datetime(df['date'][0]),
-                     pd.to_datetime(df['end_date'][(df.shape[0] - 1)]),
-                     str(pd.to_datetime(df['end_date'][(df.shape[0] - 1)]) - pd.to_datetime(df['date'][0]))
-                         .replace(' 00:00:00', ""), '0', '0', float(0), float(0), float(0)
-                    ]
-                ], columns=columns)
-        return transform_anomaly_output(out_df, anomaly_type, channel_id)
+        return transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id)
 
 
     def getCombinedAnomalies(self, data, channel_id):

@@ -125,8 +125,8 @@ def buildAnomalyStats(anomaly_df, x, y, time_frame):
 
 
 def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
+    """Rename columns, format duration, and add channel id to df."""
     col_headers = aggregated_anomalies.columns.values
-    aggregated_anomalies['channel_id'] = channel_id
     aggregated_anomalies['duration'] = aggregated_anomalies['duration'].apply(lambda x: int(x.split(" ")[0]))
     aggregated_anomalies = aggregated_anomalies.rename(columns=
         {
@@ -137,15 +137,5 @@ def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
             col_headers[3]: f"{col_headers[3]}({anomaly_type})",
             col_headers[4]: f"{col_headers[4]}({anomaly_type})"
         })
-    a = aggregated_anomalies.columns.values[8]
-    b = aggregated_anomalies.columns.values[0]
-    c = aggregated_anomalies.columns.values[1]
-    d = aggregated_anomalies.columns.values[2]
-    e = aggregated_anomalies.columns.values[3]
-    f = aggregated_anomalies.columns.values[4]
-    g = aggregated_anomalies.columns.values[5]
-    h = aggregated_anomalies.columns.values[6]
-    i = aggregated_anomalies.columns.values[7]
-    cols = [a, b, c, d, e, f, g, h, i]
-    transformed_anomalies = aggregated_anomalies[cols]
-    return transformed_anomalies
+    aggregated_anomalies.insert(0, 'channel_id', channel_id)
+    return aggregated_anomalies
