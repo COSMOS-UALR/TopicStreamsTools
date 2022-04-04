@@ -14,6 +14,7 @@ def outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date
         plt.figure(figsize=(20, 10))
         sns.set_style("darkgrid")
         ax = sns.distplot(loss_df["loss"], bins=100, label="Frequency")
+        # ax = sns.histplot(loss_df["loss"], bins=100, label="Frequency")
         ax.set_title("Frequency Distribution | Kernel Density Estimation")
         ax.set(xlabel='Anomaly Confidence Score', ylabel='Frequency (sample)')
         plt.axvline(1.80, color="k", linestyle="--")
@@ -38,7 +39,7 @@ def outputPeaks(settings, df, channel_id, anomaly_type):
     values = np.array(df['loss'])
     peaks, _ = find_peaks(values, distance=150)
     # Peak rows
-    print(df.iloc[peaks])
+    # print(df.iloc[peaks])
     plt.figure(figsize=(20, 10))
     plt.plot(values)
     plt.plot(peaks, values[peaks], "x")
