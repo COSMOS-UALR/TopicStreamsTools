@@ -1,4 +1,5 @@
 from datetime import timedelta
+from functools import partial
 import numpy as np
 import os
 import pandas as pd
@@ -48,7 +49,7 @@ class EngagementBehaviorNode:
         return channel_ids
 
 
-    def getAnomaly(self, data, threshold, start_date, anomaly_type, channel_id, anomaly_aggregation_timeframe):
+    def getAnomaly(self, threshold, start_date, channel_id, anomaly_aggregation_timeframe, data, anomaly_type):
         """For a timestamped two dimensional array, compute correlations and train model to find anomalies. Output anomalies graphs and return aggregated dataframe on given timeframe."""
         settings = self.settings
         x = data.columns.values[1]
@@ -69,24 +70,25 @@ class EngagementBehaviorNode:
         settings = self.settings
         threshold = settings['threshold']
         start_date = pd.to_datetime(settings['filters']['in']['start_date']) if 'start_date' in settings['filters']['in'] else None
+        callAnomalyFunc = partial(self.getAnomaly, threshold, start_date, channel_id, anomaly_aggregation_timeframe)
         # Views subs
         views_subs_data = data[['date', 'total_views', 'total_subscribers']]
-        views_subs_transformed_anomalies = self.getAnomaly(views_subs_data, threshold, start_date, 'views_subs', channel_id, anomaly_aggregation_timeframe)
+        views_subs_transformed_anomalies = callAnomalyFunc(views_subs_data, 'views_subs')
         # Views videos
         views_videos_data = data[['date', 'total_views', 'total_videos']]
-        views_videos_transformed_anomalies = self.getAnomaly(views_videos_data, threshold, start_date, 'views_videos', channel_id, anomaly_aggregation_timeframe)
+        views_videos_transformed_anomalies = callAnomalyFunc(views_videos_data, 'views_videos')
         # Views comments
         views_comments_data = data[['date', 'total_views', 'total_comments']]
-        views_comments_transformed_anomalies = self.getAnomaly(views_comments_data, threshold, start_date, 'views_comments', channel_id, anomaly_aggregation_timeframe)
+        views_comments_transformed_anomalies = callAnomalyFunc(views_comments_data, 'views_comments')
         # Subs videos
         subs_videos_data = data[['date', 'total_subscribers', 'total_videos']]
-        subs_videos_transformed_anomalies = self.getAnomaly(subs_videos_data, threshold, start_date, 'subs_videos', channel_id, anomaly_aggregation_timeframe)
+        subs_videos_transformed_anomalies = callAnomalyFunc(subs_videos_data, 'subs_videos')
         # Subs comments
         subs_comments_data = data[['date', 'total_subscribers', 'total_comments']]
-        subs_comments_transformed_anomalies = self.getAnomaly(subs_comments_data, threshold, start_date, 'subs_comments', channel_id, anomaly_aggregation_timeframe)
+        subs_comments_transformed_anomalies = callAnomalyFunc(subs_comments_data, 'subs_comments')
         # Video comments
         videos_comments_data = data[['date', 'total_videos', 'total_comments']]
-        videos_comments_transformed_anomalies = self.getAnomaly(videos_comments_data, threshold, start_date, 'videos_comments', channel_id, anomaly_aggregation_timeframe)
+        videos_comments_transformed_anomalies = callAnomalyFunc(videos_comments_data, 'videos_comments')
         # Combination
         fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']
         combined_anomalies = views_subs_transformed_anomalies \
