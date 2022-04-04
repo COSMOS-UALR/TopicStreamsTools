@@ -1,4 +1,3 @@
-import humanize
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -111,8 +110,8 @@ def buildAnomalyStats(anomaly_df, x, y, time_frame):
         start_date = anomaly_df['date'][item[0]]
         end_date = anomaly_df['end_date'][item[1]]
         duration = item[2]
-        avg_a = humanize.intcomma(int(np.average(anomaly_df[x][item[0]:item[1] + 1])))
-        avg_b = humanize.intcomma(int(np.average(anomaly_df[y][item[0]:item[1] + 1])))
+        avg_a = int(np.average(anomaly_df[x][item[0]:item[1] + 1]))
+        avg_b = int(np.average(anomaly_df[y][item[0]:item[1] + 1]))
         min_corr = min(anomaly_df['corr_value'][item[0]:item[1] + 1])
         max_score = max(anomaly_df['loss'][item[0]:item[1] + 1])
         avg_sse = math.sqrt(np.sum(anomaly_df['sse'][item[0]:item[1] + 1])) / len(
@@ -129,14 +128,15 @@ def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
     col_headers = aggregated_anomalies.columns.values
     aggregated_anomalies['channel_id'] = channel_id
     aggregated_anomalies['duration'] = aggregated_anomalies['duration'].apply(lambda x: int(x.split(" ")[0]))
-    aggregated_anomalies[col_headers[3]] = aggregated_anomalies[col_headers[3]].apply(
-        lambda x: int("".join((x.split(',')))))
-    aggregated_anomalies[col_headers[4]] = aggregated_anomalies[col_headers[4]].apply(
-        lambda x: int("".join((x.split(',')))))
-    aggregated_anomalies = aggregated_anomalies.rename(
-        columns={'duration': "duration(in days)", 'avg_corr': "avg_corr(" + anomaly_type + ")", 'avg_anomaly_score':
-            f"avg_anomaly_score({anomaly_type})", 'avg_sse': f"avg_sse({anomaly_type})", col_headers[3]:
-                     f"{col_headers[3]}({anomaly_type})", col_headers[4]: f"{col_headers[4]}({anomaly_type})"})
+    aggregated_anomalies = aggregated_anomalies.rename(columns=
+        {
+            'duration': "duration(in days)",
+            'avg_corr': "avg_corr(" + anomaly_type + ")",
+            'avg_anomaly_score': f"avg_anomaly_score({anomaly_type})",
+            'avg_sse': f"avg_sse({anomaly_type})",
+            col_headers[3]: f"{col_headers[3]}({anomaly_type})",
+            col_headers[4]: f"{col_headers[4]}({anomaly_type})"
+        })
     a = aggregated_anomalies.columns.values[8]
     b = aggregated_anomalies.columns.values[0]
     c = aggregated_anomalies.columns.values[1]
