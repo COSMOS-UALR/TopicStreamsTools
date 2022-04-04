@@ -5,7 +5,7 @@ import pandas as pd
 from ..dataManager import getOutputDir, load_df, save_df
 from .input import getChannelData
 from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, train, data_pre_processing, merge_outputs_calc_sse, extract_anomaly_list, aggregate_anomalies, transform_anomaly_output
+from .analysis import create_rolling_window_df, extract_anomaly_list, train, data_pre_processing, aggregate_anomalies, transform_anomaly_output
 
 class EngagementBehaviorNode:
 
@@ -57,9 +57,8 @@ class EngagementBehaviorNode:
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
-        analysis_df = merge_outputs_calc_sse(df, loss_df)
-        anomalies = extract_anomaly_list(threshold, start_date, analysis_df)
-        aggregated_anomalies = aggregate_anomalies(anomalies)
+        anomaly_df = extract_anomaly_list(df, loss_df, threshold, start_date)
+        aggregated_anomalies = aggregate_anomalies(anomaly_df, x, y)
         out_df = aggregated_anomalies.copy()
         out_df = pd.DataFrame(data=[
                     [pd.to_datetime(df['date'][0]),

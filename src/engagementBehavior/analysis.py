@@ -64,6 +64,9 @@ def data_pre_processing(df, lookback_size):
     return X, Y, timesteps
 
 
+### Models and Training ###
+
+
 class DeepAnT(torch.nn.Module):
     """Model : Class for DeepAnT model"""
 
@@ -169,15 +172,12 @@ def train(X, Y, model_settings, anomaly_type):
     return loss.reshape(len(loss), 1)
 
 
-def merge_outputs_calc_sse(totals_df, loss_df):
-    totals_df['date'] = pd.to_datetime(totals_df["date"])
-    totals_df['end_date'] = pd.to_datetime(totals_df["end_date"])
+"""# Anomaly Aggregation"""
+
+
+def extract_anomaly_list(totals_df, loss_df, threshold, start_date):
     analysis_df = totals_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
     analysis_df['sse'] = analysis_df['corr_value'].apply(lambda x: (1 - x) ** 2)
-    return analysis_df
-
-
-def extract_anomaly_list(threshold, start_date, analysis_df):
     anomaly_list = [1 if x[6] > float(threshold) and x[2] > pd.to_datetime(start_date) else 0 for x in
                     analysis_df.itertuples()]
     analysis_df['is_anomaly'] = anomaly_list
@@ -190,45 +190,43 @@ def extract_anomaly_list(threshold, start_date, analysis_df):
     return anomaly_df
 
 
-"""# Anomaly Aggregation"""
-
-
-def aggregate_anomalies(anomaly_df):
-    _anomaly_df = anomaly_df.copy()
-    _anomaly_df.reset_index(inplace=True, drop=True)
-    _anomaly_df['date'] = pd.to_datetime(_anomaly_df['date'])
-    _anomaly_df['end_date'] = pd.to_datetime(_anomaly_df['end_date'])
+def aggregate_anomalies(anomaly_df, x, y):
+    anomaly_df.reset_index(inplace=True, drop=True)
+    anomaly_df['date'] = pd.to_datetime(anomaly_df['date'])
+    anomaly_df['end_date'] = pd.to_datetime(anomaly_df['end_date'])
     indices_list = []
     start_date_index = 0
     end_date_index = 0
-    for i in range(1, len(_anomaly_df)):
-        duration = _anomaly_df['date'][i] - _anomaly_df['date'][start_date_index]
+    for i in range(1, len(anomaly_df)):
+        duration = anomaly_df['date'][i] - anomaly_df['date'][start_date_index]
         if duration < timedelta(100):
             end_date_index = i
         else:
-            indices_list.append((start_date_index, end_date_index, str(_anomaly_df['end_date'][end_date_index]
-                                                                       - _anomaly_df['date'][start_date_index]).replace(
-                ' 00:00:00', "")))
+            indices_list.append((start_date_index, end_date_index,
+                str(anomaly_df['end_date'][end_date_index] - anomaly_df['date'][start_date_index])
+                .replace(' 00:00:00', "")))
             start_date_index = i
             end_date_index = i
-    indices_list.append((start_date_index, end_date_index, str(_anomaly_df['end_date'][end_date_index]
-                                                               - _anomaly_df['date'][start_date_index]).replace(
-        ' 00:00:00', "")))
-    col_a = _anomaly_df.columns.values[2]
-    col_a_name = col_a.split('_')[1]
-    col_b = _anomaly_df.columns.values[3]
-    col_b_name = col_b.split('_')[1]
+    indices_list.append((start_date_index, end_date_index,
+        str(anomaly_df['end_date'][end_date_index] - anomaly_df['date'][start_date_index])
+        .replace(' 00:00:00', "")))
+    return buildAnomalyStats(anomaly_df, indices_list, x, y)
+
+
+def buildAnomalyStats(anomaly_df, indices_list, x, y):
+    col_a_name = x.split('_')[1]
+    col_b_name = y.split('_')[1]
     anomaly_df_list = []
     for item in indices_list:
-        start_date = _anomaly_df['date'][item[0]]
-        end_date = _anomaly_df['end_date'][item[1]]
+        start_date = anomaly_df['date'][item[0]]
+        end_date = anomaly_df['end_date'][item[1]]
         duration = item[2]
-        avg_a = humanize.intcomma(int(np.average(_anomaly_df[col_a][item[0]:item[1] + 1])))
-        avg_b = humanize.intcomma(int(np.average(_anomaly_df[col_b][item[0]:item[1] + 1])))
-        min_corr = min(_anomaly_df['corr_value'][item[0]:item[1] + 1])
-        max_score = max(_anomaly_df['loss'][item[0]:item[1] + 1])
-        avg_sse = math.sqrt(np.sum(_anomaly_df['sse'][item[0]:item[1] + 1])) / len(
-            _anomaly_df['sse'][item[0]:item[1] + 1])
+        avg_a = humanize.intcomma(int(np.average(anomaly_df[x][item[0]:item[1] + 1])))
+        avg_b = humanize.intcomma(int(np.average(anomaly_df[y][item[0]:item[1] + 1])))
+        min_corr = min(anomaly_df['corr_value'][item[0]:item[1] + 1])
+        max_score = max(anomaly_df['loss'][item[0]:item[1] + 1])
+        avg_sse = math.sqrt(np.sum(anomaly_df['sse'][item[0]:item[1] + 1])) / len(
+            anomaly_df['sse'][item[0]:item[1] + 1])
         anomaly_df_list.append((start_date, end_date, duration, avg_a, avg_b, min_corr, max_score, avg_sse))
     df_anomalies = pd.DataFrame(columns=['start_date', 'end_date', 'duration', 'avg_' + col_a_name, 'avg_' + col_b_name,
                                          'min_corr', 'max_anomaly_score', 'avg_sse'])
