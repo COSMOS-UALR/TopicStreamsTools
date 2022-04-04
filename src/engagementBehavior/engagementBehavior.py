@@ -2,10 +2,10 @@ import numpy as np
 import os
 import pandas as pd
 
-from ..dataManager import getOutputDir, load_df, save_df
+from ..dataManager import getOutputDir
 from .input import getChannelData
 from .output import outputPeaks, outputConfidenceScoreGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, getAnomalyDF, train, data_pre_processing, aggregate_anomalies, transform_anomaly_output
+from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, aggregate_anomalies, transform_anomaly_output
 
 class EngagementBehaviorNode:
 
@@ -53,7 +53,7 @@ class EngagementBehaviorNode:
         y = data.columns.values[2]
         df = create_rolling_window_df(data, x, y)
         end_date = df.columns.values[1]
-        loss_df = self.getLossDF(anomaly_type, channel_id, df.drop([end_date, x, y], axis=1))
+        loss_df = getLossDF(settings, anomaly_type, channel_id, df.drop([end_date, x, y], axis=1))
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
@@ -68,24 +68,6 @@ class EngagementBehaviorNode:
                     ]
                 ], columns=columns)
         return transform_anomaly_output(out_df, anomaly_type, channel_id)
-
-
-    def getLossDF(self, anomaly_type, channel_id, df):
-        """For the given channel_id's df, will attempt to load the loss dataframe, or will retrain a model."""
-        settings = self.settings
-        loss_df_file = f"{channel_id}_{anomaly_type}.pkl"
-        try:
-            loss_df = load_df(settings, loss_df_file)
-        except FileNotFoundError:
-            loss_df = None
-        if loss_df is None or ('retrain' in settings and settings['retrain']):
-            X, Y, T = data_pre_processing(df, settings['lookback_size'])
-            loss = train(X, Y, settings['model'], anomaly_type)
-            # Adjust index and date column for later plotting
-            loss_df = pd.DataFrame(loss, columns=["loss"], index=pd.to_datetime(T))
-            loss_df["date"] = pd.to_datetime(T)
-            save_df(settings, loss_df_file, loss_df)
-        return loss_df
 
 
     def getCombinedAnomalies(self, data, channel_id):
