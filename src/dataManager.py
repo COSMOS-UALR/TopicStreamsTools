@@ -155,6 +155,11 @@ def get_connection(db_settings):
     return connection
 
 
+def quoteList(str_list):
+    """Return list values as quoted strings, useful for SQL IN statements."""
+    return ["'" + item + "'" for item in str_list]
+
+
 def get_query(db_settings):
     query = ""
     filePath = os.path.join(os.getcwd(), db_settings['query'])

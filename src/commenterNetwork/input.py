@@ -1,11 +1,9 @@
 import errno
-import humanize
 import networkx as nx
 import os
 import pandas as pd
-from tqdm import tqdm
 
-from ..dataManager import fileExists, get_connection, getFilePath, read_file, fetchData, countQueryItems
+from ..dataManager import fileExists, get_connection, getFilePath, read_file, fetchData, countQueryItems, quoteList
 
 
 def loadNetwork(settings, file):
@@ -33,11 +31,6 @@ def getComments(settings):
     df_comments = df_comments[['source', 'target']]
     total_target = df_comments.target.nunique()
     return df_comments
-
-
-def quoteList(str_list):
-    """Return list values as quoted strings."""
-    return ["'" + item + "'" for item in str_list]
 
 
 def getChannelFileName(channel_id):

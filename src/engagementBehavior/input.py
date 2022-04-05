@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ..dataManager import get_connection, load_df, save_df, fetchData, countQueryItems
+from ..dataManager import get_connection, load_df, save_df, fetchData, countQueryItems, quoteList
 
 
 CHUNKSIZE = 10000
@@ -60,11 +60,6 @@ def computeDailyValues(df):
     df['daily_views'] = daily_views_list
     df['daily_subscribers'] = daily_subscribers_list
     return df
-
-
-def quoteList(str_list):
-    """Return list values as quoted strings."""
-    return ["'" + item + "'" for item in str_list]
 
 
 def getChannelFileName(channel_id):
