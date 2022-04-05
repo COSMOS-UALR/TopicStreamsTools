@@ -187,7 +187,7 @@ def fetchData(db_connector, query, table_name, columns, chunksize, total):
         out_df = pd.concat([out_df, df])
         total += df.shape[0]
         progress.set_description(desc=f"Collecting {table_name} : [Last packet size: {humanize.intcomma(df.shape[0])} / Total : {humanize.intcomma(total)}]", refresh=True)
-        progress.update(chunksize)
+        progress.update(df.shape[0])
     return out_df
 
 
