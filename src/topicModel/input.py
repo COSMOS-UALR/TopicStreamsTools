@@ -8,7 +8,7 @@ import re
 import string
 from tqdm import tqdm
 
-from ..dataManager import fileExists, getFilePath, load_tmp, save_tmp
+from ..dataManager import fileExists, getFilePath, load_tmp, save_tmp, get_connection, fetchData, quoteList, countQueryItems
 
 BOW_FILE = 'BOW.obj'
 DICT_FILE = 'dictionary.obj'
@@ -83,3 +83,17 @@ def processData(raw_corpus):
     # Convert original corpus to a bag of words/list of vectors:
     bow_corpus = [dictionary.doc2bow(text) for text in tqdm(processed_corpus, desc='Vectorizing corpus')]
     return bow_corpus, dictionary, processed_corpus
+
+
+def queryChannelData(settings, channel_ids):
+    """Return video data belonging to channel(s)."""
+    db_connector = get_connection(settings['filters']['in']['db_settings'])
+    CHUNKSIZE = 10000
+    video_table = 'videos'
+    columns = ['video_id', 'published_date', 'video_title']
+    query_filter = f'FROM {video_table} WHERE channel_id IN ({",".join(quoteList(channel_ids))})'
+    query = f'SELECT {",".join(columns)} ' + query_filter
+    query_count = f'SELECT COUNT(video_id) ' + query_filter
+    total_videos = countQueryItems(db_connector, query_count)
+    video_df = fetchData(db_connector, query, video_table, columns, CHUNKSIZE, total=total_videos)
+    return video_df
