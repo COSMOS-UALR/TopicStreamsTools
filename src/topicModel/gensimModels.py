@@ -60,6 +60,7 @@ class GensimModel(BaseModel):
     def output(self):
         """Will write to disk the results of the model's findings."""
         settings = self.settings
+        out = {}
         if 'folder' in settings['filters']['out']:
             nbFigures = settings['filters']['out']['nbFigures']
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
@@ -69,7 +70,9 @@ class GensimModel(BaseModel):
         if 'node' in settings['filters']['out']:
             topics = settings['filters']['out']['topics']
             filtered_ids = getIDsInTopics(self.distributionDF, topics, self.belonging_threshold)
-            save_tmp(settings, self.IDS_FILE, filtered_ids)
+            # save_tmp(settings, self.IDS_FILE, filtered_ids)
+            out['video_ids'] = filtered_ids
+        return out
 
 
     def getModel(self, settings, bow_corpus, dictionary, processed_corpus):

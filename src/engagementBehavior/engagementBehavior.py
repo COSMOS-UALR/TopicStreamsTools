@@ -17,14 +17,15 @@ class EngagementBehaviorNode:
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
 
-    def run(self):
+    def run(self, previous_node_output):
         settings = self.settings
         print(f"BEGIN {settings['node']}")
         combined_anomalies_list = []
         anomaly_aggregation_timeframe = timedelta(days=100)
+        video_ids = previous_node_output['video_ids'] if 'video_ids' in previous_node_output else None
         channel_ids = self.fetchChannelIDs()
         for channel_id in channel_ids:
-            data = getChannelData(settings, channel_id)
+            data = getChannelData(settings, channel_id, video_ids)
             combined_anomalies_list.append(self.getCombinedAnomalies(data, channel_id, anomaly_aggregation_timeframe))
         combined_dfs = pd.concat(combined_anomalies_list, axis=0)
         combined_dfs.reset_index(inplace=True, drop=True)

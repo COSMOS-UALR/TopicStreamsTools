@@ -14,14 +14,15 @@ class TopicModelNode:
             self.settings['dataSource'] = self.settings['file']
 
 
-    def run(self):
+    def run(self, previous_node_output):
         print(f"BEGIN {self.settings['node']}")
         model = self.getModel()
         model.loadData()
         model.processData()
         model.train()
-        model.output()
+        out = model.output()
         print(f"NODE {self.settings['node']} END")
+        return out
 
 
     def getModel(self):

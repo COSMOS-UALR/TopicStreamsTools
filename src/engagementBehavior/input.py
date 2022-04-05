@@ -5,12 +5,12 @@ from ..dataManager import get_connection, load_df, save_df, fetchData, countQuer
 
 CHUNKSIZE = 10000
 
-def getChannelData(settings, channel_id):
+def getChannelData(settings, channel_id, video_ids=None):
     """Return channel data in analysis-ready format."""
     try:
         df = load_df(settings, getChannelFileName(channel_id))
     except FileNotFoundError:
-        df = queryChannelData(settings, channel_id)
+        df = queryChannelData(settings, channel_id, video_ids)
     df = computeTotalValues(df)
     df = computeDailyValues(df)
     return truncateData(df)
@@ -67,7 +67,7 @@ def getChannelFileName(channel_id):
     return f"{channel_id}.pkl"
 
 
-def queryChannelData(settings, channel_id):
+def queryChannelData(settings, channel_id, video_ids=None):
     """Fetches channel data from the DB."""
     print(f'Starting collection for channe; {channel_id}.')
     table = 'channels_daily'
@@ -76,7 +76,7 @@ def queryChannelData(settings, channel_id):
     db_connector = get_connection(settings['filters']['in']['db_settings'])
     df = fetchData(db_connector, query, table, columns, CHUNKSIZE, total=None)
     df.rename(columns={'total_videos': 'total_videos_in_db'}, inplace=True)
-    video_ids, df = getVideoPublicationHistogram(db_connector, df, channel_id)
+    video_ids, df = getVideoPublicationHistogram(db_connector, df, channel_id, video_ids)
     df = getCommentPublicationHistogram(db_connector, df, video_ids)
     df.rename(columns={'extracted_date': 'date'}, inplace=True)
     # print(f"Filtering out na values from {df.shape[0]} entries.")
@@ -87,11 +87,13 @@ def queryChannelData(settings, channel_id):
     return df
 
 
-def getVideoPublicationHistogram(db_connector, channel_df, channel_id):
-    """Return video IDs belonging to channel and video publication counts grouped by day."""
+def getVideoPublicationHistogram(db_connector, channel_df, channel_id, video_ids=None):
+    """Return video IDs belonging to channel (or matching video IDs when provided) and video publication counts grouped by day."""
     video_table = 'videos'
     columns = ['video_id', 'published_date']
     query = f'SELECT {",".join(columns)} FROM {video_table} WHERE channel_id = "{channel_id}"'
+    if video_ids is not None:
+        query += f' AND video_id IN ({",".join(quoteList(video_ids))})'
     video_df = fetchData(db_connector, query, video_table, columns, CHUNKSIZE, total=None)
     video_ids = list(video_df['video_id'])
     if len(video_ids) > 0:
@@ -110,7 +112,8 @@ def getCommentPublicationHistogram(db_connector, channel_df, video_ids):
     comments_table = 'comments'
     columns = ['comment_id', 'published_date']
     query_filter = f'FROM {comments_table} WHERE video_id IN ({",".join(quoteList(video_ids))})'
-    query_filter += ' LIMIT 1000'
+    #TODO - Filtering when not using filters from previous nodes.
+    # query_filter += ' LIMIT 1000'
     query_count = f'SELECT COUNT(comment_id) ' + query_filter
     query = f'SELECT {",".join(columns)} ' + query_filter
     if len(video_ids) > 0:

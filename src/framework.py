@@ -23,9 +23,10 @@ class Framework:
 
     def run(self):
         """Execute nodes."""
-        # for node in self.nodes:
-        #     node.run()
-        self.nodes[2].run()
+        out = {}
+        for node in self.nodes:
+            out = node.run(out)
+        # self.nodes[2].run()
         # self.nodes[3].run()
 
     def nodeFactory(self, node_type):
