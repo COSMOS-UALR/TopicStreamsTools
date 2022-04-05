@@ -126,7 +126,7 @@ def saveOverlappingPlot(settings, dft, topic_group, window_size, output_dir, fil
     plotly_df = plotly_df.dropna(axis=0, how='all')
     # Order columns so the legend displays labels in order of appearance
     plotly_df = plotly_df[plotly_df.columns[plotly_df.iloc[0].argsort()][::-1]]
-    plotly_fig = px.line(plotly_df.reset_index(), x='index', y=plotly_df.columns)
+    plotly_fig = px.line(plotly_df.reset_index(), x=plotly_df.index, y=plotly_df.columns)
     setPlotlyOptions(settings, plotly_fig)
     setMatPlotLibOptions(settings, plot, multiple_lines = True)
     plotly_fig.write_html(os.path.join(output_dir, f'{filename}.html'))
