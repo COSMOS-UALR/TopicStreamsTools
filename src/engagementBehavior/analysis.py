@@ -2,7 +2,8 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
+import scipy.signal as signals
+import scipy.stats as stats
 
 from .models import data_pre_processing, train
 from ..dataManager import load_df, save_df
@@ -154,7 +155,7 @@ def getPeaks(df, channel_id):
     # values = np.convolve(data, kernel, mode='same')
     # peaks, _ = find_peaks(values, prominence=0.01)
     values = np.array(df['loss'])
-    peaks, _ = find_peaks(values, prominence=0.25)
+    peaks, _ = signals.find_peaks(values, prominence=0.25)
     peaks_df = pd.DataFrame(data =[[channel_id, df.iloc[peaks].shape[0], max(df.iloc[peaks]['loss']), np.mean(df.iloc[peaks]['loss']) ]], 
                         columns = ['channel_id', 'peak_count', 'max_peak', 'avg_peak'])
     return peaks, peaks_df
@@ -163,6 +164,30 @@ def getPeaks(df, channel_id):
 def get_med_peak(data, prominence=0.01):
     """Find peaks with the given prominence within the loss data and return the median. A low prominence captures even minor peaks, making this number a good minimum threshold to filter anomalies."""
     values = np.array(data['loss'])
-    peaks, _ = find_peaks(values, prominence=prominence)
+    peaks, _ = signals.find_peaks(values, prominence=prominence)
     med_peak = np.median(data.iloc[peaks]['loss'])
     return med_peak
+
+
+def getPeakIntensityDf(loss_df, peaks):
+    peak_intensity_df = loss_df.iloc[peaks]
+    peak_intensity_df.drop(['date'], axis=1, inplace=True)
+    peak_intensity_df.rename(columns={'loss':"peaks"}, inplace=True)
+    peak_intensity_df.reset_index(drop=True, inplace=True)
+    intensities = stats.zscore(peak_intensity_df['peaks'])
+    peak_intensity_df['zscore'] = intensities
+    peak_intensity_df['zscore'] = peak_intensity_df['zscore'].apply(lambda x: np.rint(x))
+    peak_intensity_level = []
+    for score in peak_intensity_df['zscore']:
+        if score <= -2:
+            peak_intensity_level.append(1)
+        elif score == -1:
+            peak_intensity_level.append(2)
+        elif score == 0:
+            peak_intensity_level.append(3)
+        elif score == 1:
+            peak_intensity_level.append(4)
+        else:
+            peak_intensity_level.append(5)
+    peak_intensity_df['peak_intensity'] = peak_intensity_level
+    return peak_intensity_df

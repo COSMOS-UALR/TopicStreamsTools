@@ -7,7 +7,8 @@ import pandas as pd
 from ..dataManager import getOutputDir
 from .input import getChannelData
 from .output import outputLossGraph, outputFrequencyGraph
-from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, buildAnomalyStats, transform_anomaly_output, getPeaks
+from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, buildAnomalyStats,\
+    transform_anomaly_output, getPeaks, getPeakIntensityDf
 
 class EngagementBehaviorNode:
 
@@ -59,19 +60,16 @@ class EngagementBehaviorNode:
 
 
     def getAnomaly(self, start_date, channel_id, anomaly_aggregation_timeframe, data, anomaly_type):
-        """For a timestamped two dimensional array, compute correlations and train model to find anomalies. Output anomalies graphs and return aggregated dataframe on given timeframe."""
+        """For a timestamped two dimensional array, compute correlations and train model to find anomalies. Return loss dataframe and aggregated dataframe on given timeframe."""
         settings = self.settings
         x = data.columns.values[1]
         y = data.columns.values[2]
         df = create_rolling_window_df(data, x, y)
         end_date = df.columns.values[1]
         loss_df = getLossDF(settings, anomaly_type, channel_id, df.drop([end_date, x, y], axis=1))
-        peaks, peaks_df = getPeaks(loss_df, channel_id)
-        outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
-        outputLossGraph(settings, loss_df, peaks, channel_id, anomaly_type, start_date)
         anomaly_df = getAnomalyDF(df, loss_df, start_date)
         aggregated_anomalies = buildAnomalyStats(anomaly_df, x, y, anomaly_aggregation_timeframe)
-        return transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id)
+        return loss_df, transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id)
 
 
     def getCombinedAnomalies(self, data, channel_id, anomaly_aggregation_timeframe):
@@ -80,14 +78,24 @@ class EngagementBehaviorNode:
         start_date = pd.to_datetime(settings['filters']['in']['start_date']) if 'start_date' in settings['filters']['in'] else None
         callAnomalyFunc = partial(self.getAnomaly, start_date, channel_id, anomaly_aggregation_timeframe)
         combined_anomalies = None
+        aggregate_peak_df = None
         join_fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']
         for anomaly_type, feature_pair in self.feature_pairs.items():
-            fieldinput = ['date'] + feature_pair
-            input = data[fieldinput]
-            anomalies_df = callAnomalyFunc(input, anomaly_type)
+            print(f'Beginning analysis on the pair: {anomaly_type}.')
+            input = data[['date'] + feature_pair]
+            loss_df, anomalies_df = callAnomalyFunc(input, anomaly_type)
+            peaks, peaks_df = getPeaks(loss_df, channel_id)
+            outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
+            outputLossGraph(settings, loss_df, peaks, channel_id, anomaly_type, start_date)
+            # intensities = getPeakIntensityDf(loss_df, peaks)
             if combined_anomalies is None:
                 combined_anomalies = anomalies_df
             else:
                 combined_anomalies = combined_anomalies.merge(anomalies_df, how='outer', on=join_fields)
+            if aggregate_peak_df is None:
+                aggregate_peak_df = peaks_df
+            else:
+                aggregate_peak_df = pd.concat((aggregate_peak_df, peaks_df), axis = 0)
+        print(f"Accross all features, channel {channel_id} found {sum(aggregate_peak_df['peak_count'])} anomaly peaks. Max peak = {max(aggregate_peak_df['max_peak'])}. Average peak = {np.mean(aggregate_peak_df['avg_peak'])}.")
         combined_anomalies.fillna(0, inplace=True)
         return combined_anomalies
