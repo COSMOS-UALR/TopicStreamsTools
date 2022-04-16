@@ -134,6 +134,8 @@ def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
     aggregated_anomalies = aggregated_anomalies.rename(columns=
         {
             'duration': "duration(in days)",
+            'min_corr': f"min_corr({anomaly_type})",
+            'max_anomaly_score': f"max_anomaly_score({anomaly_type})",
             'avg_corr': "avg_corr(" + anomaly_type + ")",
             'avg_anomaly_score': f"avg_anomaly_score({anomaly_type})",
             'avg_sse': f"avg_sse({anomaly_type})",
@@ -170,7 +172,7 @@ def get_med_peak(data, prominence=0.01):
 
 
 def getPeakIntensityDf(loss_df, peaks):
-    peak_intensity_df = loss_df.iloc[peaks]
+    peak_intensity_df = loss_df.copy().iloc[peaks]
     peak_intensity_df.drop(['date'], axis=1, inplace=True)
     peak_intensity_df.rename(columns={'loss':"peaks"}, inplace=True)
     peak_intensity_df.reset_index(drop=True, inplace=True)
