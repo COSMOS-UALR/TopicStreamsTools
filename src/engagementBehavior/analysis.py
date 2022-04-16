@@ -146,6 +146,20 @@ def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
 """# Peaks Detection"""
 
 
+def getPeaks(df, channel_id):
+    """Detect loss dataframe peaks and return resulting array and dataframe."""
+    # kernel_size = 10
+    # kernel = np.ones(kernel_size) / kernel_size
+    # data = np.array(df['loss'])
+    # values = np.convolve(data, kernel, mode='same')
+    # peaks, _ = find_peaks(values, prominence=0.01)
+    values = np.array(df['loss'])
+    peaks, _ = find_peaks(values, prominence=0.25)
+    peaks_df = pd.DataFrame(data =[[channel_id, df.iloc[peaks].shape[0], max(df.iloc[peaks]['loss']), np.mean(df.iloc[peaks]['loss']) ]], 
+                        columns = ['channel_id', 'peak_count', 'max_peak', 'avg_peak'])
+    return peaks, peaks_df
+
+
 def get_med_peak(data, prominence=0.01):
     """Find peaks with the given prominence within the loss data and return the median. A low prominence captures even minor peaks, making this number a good minimum threshold to filter anomalies."""
     values = np.array(data['loss'])
