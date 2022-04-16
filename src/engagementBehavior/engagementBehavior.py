@@ -16,6 +16,14 @@ class EngagementBehaviorNode:
         self.settings = settings[node]
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
+        self.feature_pairs = {
+            'views_subs': ['total_views', 'total_subscribers'],
+            'views_videos': ['total_views', 'total_videos'],
+            'views_comments': ['total_views', 'total_comments'],
+            'subs_videos': ['total_subscribers', 'total_videos'],
+            'subs_comments': ['total_subscribers', 'total_comments'],
+            'videos_comments': ['total_videos', 'total_comments'],
+        }
 
     def run(self, previous_node_output):
         settings = self.settings
@@ -71,31 +79,15 @@ class EngagementBehaviorNode:
         settings = self.settings
         start_date = pd.to_datetime(settings['filters']['in']['start_date']) if 'start_date' in settings['filters']['in'] else None
         callAnomalyFunc = partial(self.getAnomaly, start_date, channel_id, anomaly_aggregation_timeframe)
-        # Views subs
-        views_subs_data = data[['date', 'total_views', 'total_subscribers']]
-        views_subs_transformed_anomalies = callAnomalyFunc(views_subs_data, 'views_subs')
-        # Views videos
-        views_videos_data = data[['date', 'total_views', 'total_videos']]
-        views_videos_transformed_anomalies = callAnomalyFunc(views_videos_data, 'views_videos')
-        # Views comments
-        views_comments_data = data[['date', 'total_views', 'total_comments']]
-        views_comments_transformed_anomalies = callAnomalyFunc(views_comments_data, 'views_comments')
-        # Subs videos
-        subs_videos_data = data[['date', 'total_subscribers', 'total_videos']]
-        subs_videos_transformed_anomalies = callAnomalyFunc(subs_videos_data, 'subs_videos')
-        # Subs comments
-        subs_comments_data = data[['date', 'total_subscribers', 'total_comments']]
-        subs_comments_transformed_anomalies = callAnomalyFunc(subs_comments_data, 'subs_comments')
-        # Video comments
-        videos_comments_data = data[['date', 'total_videos', 'total_comments']]
-        videos_comments_transformed_anomalies = callAnomalyFunc(videos_comments_data, 'videos_comments')
-        # Combination
-        fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']
-        combined_anomalies = views_subs_transformed_anomalies \
-            .merge(views_videos_transformed_anomalies, how='outer', on=fields) \
-            .merge(views_comments_transformed_anomalies, how='outer', on=fields) \
-            .merge(subs_videos_transformed_anomalies, how='outer', on=fields) \
-            .merge(subs_comments_transformed_anomalies, how='outer', on=fields) \
-            .merge(videos_comments_transformed_anomalies, how='outer', on=fields)
+        combined_anomalies = None
+        join_fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']
+        for anomaly_type, feature_pair in self.feature_pairs.items():
+            fieldinput = ['date'] + feature_pair
+            input = data[fieldinput]
+            anomalies_df = callAnomalyFunc(input, anomaly_type)
+            if combined_anomalies is None:
+                combined_anomalies = anomalies_df
+            else:
+                combined_anomalies = combined_anomalies.merge(anomalies_df, how='outer', on=join_fields)
         combined_anomalies.fillna(0, inplace=True)
         return combined_anomalies
