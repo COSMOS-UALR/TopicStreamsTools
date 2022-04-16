@@ -33,3 +33,17 @@ def outputLossGraph(settings, loss_df, peaks, channel_id, anomaly_type, start_da
     ax.set(ylabel="Anomaly Confidence Score", xlabel="Date")
     plt.savefig(os.path.join(getOutputDir(settings), f'{channel_id}_{anomaly_type}_{date_output}_Anomaly_Confidence_Score_With_Peaks.png'))
     plt.close()
+
+
+def hierarchicalClustering(labeling_df):
+    # plt.style.use('ggplot')
+    cols = ['channel_id', 'start_date', 'end_date', 'duration(in days)', 'max_anomaly_score(views_subs)',
+        'min_corr(views_subs)','max_anomaly_score(views_videos)', 'min_corr(views_videos)',
+        'max_anomaly_score(views_comments)','min_corr(views_comments)','max_anomaly_score(subs_videos)', 'min_corr(subs_videos)',
+        'max_anomaly_score(subs_comments)', 'min_corr(subs_comments)','max_anomaly_score(videos_comments)', 'min_corr(videos_comments)']
+    clustering_df = labeling_df[cols].copy()
+    clustering_df.fillna(0, inplace=True)
+    clustering_df.set_index('channel_id', inplace=True)
+    clustering_df.drop(columns=['start_date', 'end_date', 'duration(in days)'], axis=1, inplace=True)
+    sns.clustermap(clustering_df, cmap='mako', figsize=(20,20))
+    plt.savefig(f'engagement_stats_clustermap.png')

@@ -4,11 +4,13 @@ import numpy as np
 import os
 import pandas as pd
 
-from ..dataManager import getOutputDir
+from ..dataManager import getOutputDir, load_df, save_df
 from .input import getChannelData
 from .output import outputLossGraph, outputFrequencyGraph
 from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, buildAnomalyStats,\
     transform_anomaly_output, getPeaks, getPeakIntensityDf
+
+from .suspicion import getCombinedSuspicionRank
 
 class EngagementBehaviorNode:
 
@@ -28,20 +30,29 @@ class EngagementBehaviorNode:
 
     def run(self, previous_node_output):
         settings = self.settings
+        combined_dfs_file = "combined_anomalies.pkl"
         print(f"BEGIN {settings['node']}")
-        combined_anomalies_list = []
-        anomaly_aggregation_timeframe = timedelta(days=100)
-        video_ids = previous_node_output['video_ids'] if 'video_ids' in previous_node_output else None
-        channel_ids = self.fetchChannelIDs()
-        for channel_id in channel_ids:
-            data = getChannelData(settings, channel_id, video_ids)
-            combined_anomalies_list.append(self.getCombinedAnomalies(data, channel_id, anomaly_aggregation_timeframe))
-        combined_dfs = pd.concat(combined_anomalies_list, axis=0)
-        combined_dfs.reset_index(inplace=True, drop=True)
-        combined_dfs = combined_dfs.replace(np.NaN, 0)
-        if 'folder' in settings['filters']['out']:
-            out = os.path.join(getOutputDir(settings), 'combined_anomalies.csv')
-            combined_dfs.to_csv(out, index=False)
+        try:
+            combined_dfs = load_df(settings, combined_dfs_file)
+        except FileNotFoundError:
+            combined_dfs = None
+        if combined_dfs is None or ('retrain' in settings and settings['retrain']):
+            combined_anomalies_list = []
+            anomaly_aggregation_timeframe = timedelta(days=100)
+            video_ids = previous_node_output['video_ids'] if 'video_ids' in previous_node_output else None
+            channel_ids = self.fetchChannelIDs()
+            for channel_id in channel_ids:
+                data = getChannelData(settings, channel_id, video_ids)
+                combined_anomalies_list.append(self.getCombinedAnomalies(data, channel_id, anomaly_aggregation_timeframe))
+            combined_dfs = pd.concat(combined_anomalies_list, axis=0)
+            combined_dfs.reset_index(inplace=True, drop=True)
+            combined_dfs = combined_dfs.replace(np.NaN, 0)
+            save_df(settings, combined_dfs_file, combined_dfs)
+            if 'folder' in settings['filters']['out']:
+                out = os.path.join(getOutputDir(settings), 'combined_anomalies.csv')
+                combined_dfs.to_csv(out, index=False)
+        getCombinedSuspicionRank(combined_dfs)
+        
         # if 'node' in settings['filters']['out']:
         #     TODO
         print(f"NODE {settings['node']} END")
@@ -79,6 +90,7 @@ class EngagementBehaviorNode:
         callAnomalyFunc = partial(self.getAnomaly, start_date, channel_id, anomaly_aggregation_timeframe)
         combined_anomalies = None
         aggregate_peak_df = None
+        aggregate_intensities_df = None
         join_fields = ['channel_id', 'start_date', 'end_date', 'duration(in days)']
         for anomaly_type, feature_pair in self.feature_pairs.items():
             print(f'Beginning analysis on the pair: {anomaly_type}.')
@@ -87,7 +99,7 @@ class EngagementBehaviorNode:
             peaks, peaks_df = getPeaks(loss_df, channel_id)
             outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
             outputLossGraph(settings, loss_df, peaks, channel_id, anomaly_type, start_date)
-            # intensities = getPeakIntensityDf(loss_df, peaks)
+            intensities_df = getPeakIntensityDf(loss_df, peaks)
             if combined_anomalies is None:
                 combined_anomalies = anomalies_df
             else:
@@ -96,6 +108,14 @@ class EngagementBehaviorNode:
                 aggregate_peak_df = peaks_df
             else:
                 aggregate_peak_df = pd.concat((aggregate_peak_df, peaks_df), axis = 0)
+            if aggregate_intensities_df is None:
+                aggregate_intensities_df = intensities_df
+            else:
+                aggregate_intensities_df = pd.concat((aggregate_intensities_df, intensities_df), axis = 0)
         print(f"Accross all features, channel {channel_id} found {sum(aggregate_peak_df['peak_count'])} anomaly peaks. Max peak = {max(aggregate_peak_df['max_peak'])}. Average peak = {np.mean(aggregate_peak_df['avg_peak'])}.")
+        intensity_counts = aggregate_intensities_df['peak_intensity'].value_counts().rename_axis('intensity_level').reset_index(name='frequency')
+        intensity_counts['distribution'] = intensity_counts['frequency'].apply(lambda x: round((x/aggregate_intensities_df.shape[0]) * 100),1)
+        intensity_counts.set_index('intensity_level', inplace=True)
+        # intensity_counts.index.name = None
         combined_anomalies.fillna(0, inplace=True)
         return combined_anomalies
