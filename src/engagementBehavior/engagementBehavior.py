@@ -50,7 +50,7 @@ class EngagementBehaviorNode:
         return channel_ids
 
 
-    def getAnomaly(self, threshold, start_date, channel_id, anomaly_aggregation_timeframe, data, anomaly_type):
+    def getAnomaly(self, start_date, channel_id, anomaly_aggregation_timeframe, data, anomaly_type):
         """For a timestamped two dimensional array, compute correlations and train model to find anomalies. Output anomalies graphs and return aggregated dataframe on given timeframe."""
         settings = self.settings
         x = data.columns.values[1]
@@ -61,7 +61,7 @@ class EngagementBehaviorNode:
         outputFrequencyGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputConfidenceScoreGraph(settings, loss_df, channel_id, anomaly_type, start_date)
         outputPeaks(settings, loss_df, channel_id, anomaly_type)
-        anomaly_df = getAnomalyDF(df, loss_df, threshold, start_date)
+        anomaly_df = getAnomalyDF(df, loss_df, start_date)
         aggregated_anomalies = buildAnomalyStats(anomaly_df, x, y, anomaly_aggregation_timeframe)
         return transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id)
 
@@ -69,9 +69,8 @@ class EngagementBehaviorNode:
     def getCombinedAnomalies(self, data, channel_id, anomaly_aggregation_timeframe):
         """Generate anomaly dataframe for each dimension and return combined dataframe."""
         settings = self.settings
-        threshold = settings['threshold']
         start_date = pd.to_datetime(settings['filters']['in']['start_date']) if 'start_date' in settings['filters']['in'] else None
-        callAnomalyFunc = partial(self.getAnomaly, threshold, start_date, channel_id, anomaly_aggregation_timeframe)
+        callAnomalyFunc = partial(self.getAnomaly, start_date, channel_id, anomaly_aggregation_timeframe)
         # Views subs
         views_subs_data = data[['date', 'total_views', 'total_subscribers']]
         views_subs_transformed_anomalies = callAnomalyFunc(views_subs_data, 'views_subs')

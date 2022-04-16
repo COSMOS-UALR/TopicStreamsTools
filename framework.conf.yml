@@ -45,7 +45,6 @@ routing:
     - node_2:
         node_type: channel_engagement
         retrain: False
-        threshold: 0.4
         lookback_size: 1
         model:
           type: lstmae

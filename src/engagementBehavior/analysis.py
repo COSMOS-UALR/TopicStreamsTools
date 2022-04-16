@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.signal import find_peaks
 
 from .models import data_pre_processing, train
 from ..dataManager import load_df, save_df
@@ -42,8 +43,9 @@ def create_rolling_window_df(df, x, y):
 """# Anomaly Detection"""
 
 
-def getAnomalyDF(corr_df, loss_df, threshold, start_date):
+def getAnomalyDF(corr_df, loss_df, start_date):
     """Given the correlation df & loss df, compute square of square errors, tag as anomalous if over threshold and after start_date (if non null), and filter out non anomalies."""
+    threshold = get_med_peak(loss_df)
     df = corr_df.merge(loss_df, how='inner', left_on=['date'], right_on=['date'])
     df['sse'] = df['corr_value'].apply(lambda x: (1 - x) ** 2)
     if start_date:
@@ -139,3 +141,14 @@ def transform_anomaly_output(aggregated_anomalies, anomaly_type, channel_id):
         })
     aggregated_anomalies.insert(0, 'channel_id', channel_id)
     return aggregated_anomalies
+
+
+"""# Peaks Detection"""
+
+
+def get_med_peak(data, prominence=0.01):
+    """Find peaks with the given prominence within the loss data and return the median. A low prominence captures even minor peaks, making this number a good minimum threshold to filter anomalies."""
+    values = np.array(data['loss'])
+    peaks, _ = find_peaks(values, prominence=prominence)
+    med_peak = np.median(data.iloc[peaks]['loss'])
+    return med_peak
