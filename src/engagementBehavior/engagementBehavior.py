@@ -9,8 +9,9 @@ from .input import getChannelData
 from .output import outputLossGraph, outputFrequencyGraph
 from .analysis import create_rolling_window_df, getAnomalyDF, getLossDF, buildAnomalyStats,\
     transform_anomaly_output, getPeaks, getPeakIntensityDf
-
 from .suspicion import getCombinedSuspicionRank
+from .PCA import applyPCA
+
 
 class EngagementBehaviorNode:
 
@@ -51,8 +52,8 @@ class EngagementBehaviorNode:
             if 'folder' in settings['filters']['out']:
                 out = os.path.join(getOutputDir(settings), 'combined_anomalies.csv')
                 combined_dfs.to_csv(out, index=False)
-        getCombinedSuspicionRank(combined_dfs)
-        
+        labeling_df, combined_rankings = getCombinedSuspicionRank(combined_dfs)
+        applyPCA(labeling_df, combined_rankings)
         # if 'node' in settings['filters']['out']:
         #     TODO
         print(f"NODE {settings['node']} END")

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from statistics import harmonic_mean
 
-from .output import hierarchicalClustering
+from .output import hierarchicalClustering, outputSuspicion
 
 
 METHODS = {
@@ -41,7 +41,9 @@ def getCombinedSuspicionRank(df):
             combined_rankings = ranking_df
         else:
             combined_rankings = combined_rankings.merge(ranking_df, how='outer', on=join_fields)
+    outputSuspicion(combined_rankings)
     combined_rankings.to_csv(f'Weighted_Rankings.csv', index=False)
+    return df, combined_rankings
 
 
 def get_suspicion_rank(anomaly_score, min_corr):
