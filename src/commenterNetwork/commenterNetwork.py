@@ -1,7 +1,6 @@
 from collections import Counter
 from itertools import combinations
 from functools import partial
-import multiprocessing as mp
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -25,30 +24,27 @@ class CommenterNetwork:
         self.settings['datasetName'] = project_name
 
 
-    def toEdgeList(self, df):
-        """From comment data to edge-lists"""
-        weight_threshold = 1
-        # weight_threshold = 10
-        chunk_size = 100000
+    def toEdgeList(self, df, weight_threshold, step_size, step_weight_threshold):
+        """Converts list of sources and target to weighted edge-list dataframe."""
         edges_list_weigths = []
         print("Computing comments edge list.")
-        for start in tqdm(range(0, df.shape[0], chunk_size)):
-            df_subset = df.iloc[start : start + chunk_size]
+        for start in tqdm(range(0, df.shape[0], step_size)):
+            df_subset = df.iloc[start : start + step_size]
             gp = df_subset.groupby('target', as_index=False).aggregate(lambda tdf: tdf.unique().tolist())
             parallel_list = gp.apply(lambda s: [] if len(s.iloc[1]) <= 1 else list(combinations(sorted(s.iloc[1]), 2)), axis=1)
             edges = [element for list_val in parallel_list.to_list() for element in list_val]
             if len(edges) > 0:
                 ht_pair_count = Counter(edges)
-                edges_list_weigths.extend([(ht1, ht2, w) for (ht1, ht2), w in ht_pair_count.items() if w >= weight_threshold])
+                edges_list_weigths.extend([(ht1, ht2, w) for (ht1, ht2), w in ht_pair_count.items() if w >= step_weight_threshold])
         df_comm = pd.DataFrame(data=edges_list_weigths, columns=['Source', 'Target', 'Weight'])
         df_comm = df_comm.groupby(['Source', 'Target'])['Weight'].sum().reset_index()
-        df_comm = df_comm[df_comm['Weight'] >= 10]
+        df_comm = df_comm[df_comm['Weight'] >= weight_threshold]
         df_comm.reset_index(drop=True, inplace=True)
         return df_comm
 
 
     def edgeListToNetwork(self, df):
-        """From edge-lists to networks"""
+        """Converts edge-list to networkx graph object."""
         if 'Unnamed: 0' in df.columns:
             df.drop(['Unnamed: 0'], axis=1)
         G = nx.Graph()
@@ -94,20 +90,15 @@ class CommenterNetwork:
         return mcs
 
 
-    def count(self, i, G, size_list, count_list):
+    def count(self, i, G):
         count = len(self.maximal_cliques(G, i))
         if count > 0:
-            size_list.append(i)
-            count_list.append(count)
             return i, count
 
         
     def findCliques(self, G):
         print("Finding cliques.")
-        size_list = []
-        count_list = []
-        count_list_check = []
-        f = partial(self.count, G=G, size_list=size_list, count_list=count_list)
+        f = partial(self.count, G=G)
         count_list_check = p_map(f, range(100))
         count_list = [i for i in count_list_check if i]
         return pd.DataFrame(count_list, columns =['Size', 'Count'])
@@ -146,31 +137,38 @@ class CommenterNetwork:
 
 
     def showCliqueStats(self, df):
-        df.describe()
-        len(df["Clique_Members"].explode().unique())
+        print(df.describe())
         df['Avg_Clus_Coeff'].mean()
         df['Normalized_Avg_Clus_Coeff'].mean()
         df['Average_Degree'].mean()
         df['Normalized_Avg_Degree'].mean()
-        df.shape
-        df.Clique_Size.mean()
-        df.Clique_Size.max()
-        df.Clique_Size.median()
+        print(f'\
+            Total Unique Clique Members: {len(df["Clique_Members"].explode().unique())}\
+            Dataframe Shape: {df.shape}\
+            Max Clique Size: {df.Clique_Size.max()}\
+            Mean Clique Size: {df.Clique_Size.mean()}\
+            Median Clique Size: {df.Clique_Size.median()}'
+        )
+        
 
 
-    def run(self):
+    def run(self, previous_node_output):
         CLIQUES_COUNT_FILE = 'cliques_count.obj'
         CLIQUES_FILE = 'cliques.obj'
         NETWORK_FILE = 'network.gexf'
+        weight_threshold = 10
+        step_weight_threshold = 0
+        # step_weight_threshold = 1
+        print(f"BEGIN {self.settings['node']}")
         try:
             G = loadNetwork(self.settings, NETWORK_FILE)
         except FileNotFoundError:
             df = getComments(self.settings)
             # total_commenters = df.source.nunique()
-            df_comm = self.toEdgeList(df)
+            df_comm = self.toEdgeList(df, weight_threshold, 100000, step_weight_threshold)
             G = self.edgeListToNetwork(df_comm)
             saveNetwork(self.settings, NETWORK_FILE, G)
-        # printGraphInfo(G)
+        self.printGraphInfo(G)
         try:
             df_cliques_count = load_tmp(self.settings, CLIQUES_COUNT_FILE)
         except FileNotFoundError:
