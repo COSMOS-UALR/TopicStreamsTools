@@ -31,6 +31,7 @@ class EngagementBehaviorNode:
 
     def run(self, previous_node_output):
         settings = self.settings
+        out = {}
         combined_dfs_file = "combined_anomalies.pkl"
         print(f"BEGIN {settings['node']}")
         try:
@@ -57,6 +58,7 @@ class EngagementBehaviorNode:
         # if 'node' in settings['filters']['out']:
         #     TODO
         print(f"NODE {settings['node']} END")
+        return out
 
     
     def fetchChannelIDs(self):
