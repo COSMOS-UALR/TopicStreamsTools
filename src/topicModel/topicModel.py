@@ -8,6 +8,7 @@ class TopicModelNode:
         self.settings = settings[node]
         self.settings['node'] = node
         self.settings['datasetName'] = project_name
+        self.settings['model'] = settings[node]['model_type']
         if 'dataSource' in self.settings:
             self.settings['dataSource'] = self.settings['dataSource']
         elif 'file' in self.settings:
