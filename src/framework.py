@@ -26,8 +26,6 @@ class Framework:
         out = {}
         for node in self.nodes:
             out = node.run(out)
-        # self.nodes[2].run()
-        # self.nodes[3].run()
 
     def nodeFactory(self, node_type):
         """Build node for each module type."""
