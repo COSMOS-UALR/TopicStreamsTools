@@ -1,0 +1,101 @@
+project: pipeline_comments
+routing:
+  nodes:
+    - node_1:
+        node_type: topic_model
+        model_type: LDA
+        numberTopics: 20
+        numberWords: 10
+        minimumProbability: 0.00000001
+        # file: YT_Comments_November_1_2020_to_March_1_2021_DE.csv
+        corpusFieldName: video_title
+        dateFieldName: published_date
+        idFieldName: video_id
+        optimize_model: True
+        coherence_measure: c_v
+        # coherence_measure: u_mass
+        # file: Twitter_Posts_November_1_2020_to_March_1_2021_DE.csv
+        # corpusFieldName: text
+        # dateFieldName: created_at
+        # idFieldName: id
+        roundToDay: false
+        reloadData: false    # Will reload input file and train a new model with the updated data
+        retrainModel: false  # Will use processed data and train a new model (useful to try different settings without processing the same corpus)
+        filters:
+          in:
+            # file: true
+            channel_ids:
+              - UC0rZoXAD5lxgBHMsjrGwWWQ
+              # - UC4a-Gbdw7vOaccHmFo40b9g
+            db_settings:
+              user: reader
+              password: $cD&EjmLv_fu$z4e
+              host: 144.167.35.202
+              db: youtube_tracker
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
+          out:
+            node: node_2
+            topics: [2]
+            folder: pipeline_comments_results
+            nbFigures: 10
+            moving_average_size: 5
+    - node_2:
+        node_type: channel_engagement
+        retrain: False
+        lookback_size: 1
+        model:
+          type: lstmae
+          dimension: 1
+          # type: deepant
+          # lookback_size: 10
+          # dimension: 4
+        filters:
+          in:
+            start_date: '2018-01-01'
+            # channel_id: UC0rZoXAD5lxgBHMsjrGwWWQ
+            channel_ids:
+              - UC0rZoXAD5lxgBHMsjrGwWWQ
+              # - UC4a-Gbdw7vOaccHmFo40b9g
+            db_settings:
+              user: reader
+              password: $cD&EjmLv_fu$z4e
+              host: 144.167.35.202
+              db: youtube_tracker
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
+          out:
+            folder: engagement_results
+    - node_3:
+        node_type: comment_behavior
+        filters:
+          in:
+            # file: UCaBf1a-dpIsw8OxqH4ki2Kg_Comments.csv
+            channel_ids:
+            # Stats updated on 03/17/2022
+              - UC0rZoXAD5lxgBHMsjrGwWWQ # Styxhexenhammer666 - 5,299 videos - 2,476,643 comments
+              # - UCZWlSUNDvCCS1hBiXV0zKcA # Prager U - 33 videos - 57,487 comments
+              # - UCGy6uV7yqGWDeUWTZzT3ZEg # Rebel News - 1,367 videos - 9,514 comments
+              # - UCittVh8imKanO_5KohzDbpg # Paul Joseph Watson - 57 videos - 0 comments
+              # - UC4a-Gbdw7vOaccHmFo40b9g # Khan Academy - 4 videos - 3,023 comments
+              # - UCoLrcjPV5PbUrUyXq5mjc_A # MLB - 2 videos - 0 comments
+              # - UCaBf1a-dpIsw8OxqH4ki2Kg # Not in DB
+              # - UC8Y-jrV8oR3s2Ix4viDkZtA # Not in DB
+              # - UCxAICW_LdkfFYwTqTHHE0vg # Not in DB
+              # - UCY30JRSgfhYXA6i6xX1erWg # Not in DB
+            db_settings:
+              user: reader
+              password: $cD&EjmLv_fu$z4e
+              host: 144.167.35.202
+              db: youtube_tracker
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
+          out:
+            folder: engagement_results
+
