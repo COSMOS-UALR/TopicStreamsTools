@@ -1,4 +1,3 @@
-from gensim import models
 import matplotlib.pyplot as plt 
 import os
 import pandas as pd
@@ -6,7 +5,7 @@ import random
 from tqdm import tqdm
 import plotly.express as px
 import pyLDAvis
-import pyLDAvis.gensim_models
+import pyLDAvis.gensim
 
 from ..dataManager import checkPathExists, getFilePath, getOutputDir
 

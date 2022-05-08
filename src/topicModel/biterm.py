@@ -53,7 +53,7 @@ class BitermModel(BaseModel):
 
     def getThetaDF(self, settings, corpusDF, theta):
         """Return dataframes holding topic distributions for each document, with id or timestamped index."""
-        timestamps = corpusDF.index.values
+        timestamps = corpusDF[settings['dateFieldName']].values
         if 'idFieldName' in settings:
             ids = corpusDF[settings['idFieldName']].values
         topic_distrib_df = theta

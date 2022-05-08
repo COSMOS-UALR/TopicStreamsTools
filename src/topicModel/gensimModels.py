@@ -54,6 +54,7 @@ class GensimModel(BaseModel):
             topic_distribution = self.model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
             theta = self.getTheta(settings, self.model, self.bow_corpus)
             self.distributionDF = self.getThetaDF(settings, self.bow_corpus, self.corpus_df, topic_distribution, theta)
+            save_df(settings, self.DISTRIB_FILE, self.distributionDF)
             self.wordsDF = self.getTopTopicWords(settings, topic_distribution, theta)
 
 
@@ -129,7 +130,7 @@ class GensimModel(BaseModel):
 
 
     def getTheta(self, settings, model, corpus):
-        """Get topic distributions for each document, with document id or timestamped as index."""
+        """Get topic distributions for each document."""
         topic_distributions = []
         #    alpha = model.hdp_to_lda()[0]
         #    topics_nos = [x[0] for x in shown_topics ]
@@ -157,13 +158,13 @@ class GensimModel(BaseModel):
         if 'end_date' in settings:
             df = df.loc[:settings['end_date']]
         bow_corpus = df['val'].tolist()
-        timestamps = df.index.values
+        timestamps = df[settings['dateFieldName']].values
         return bow_corpus, timestamps
 
 
     def getThetaDF(self, settings, bow_corpus, corpusDF, topic_distribution, theta):
         """Get topic distributions dataframe for each document, with document id or timestamped as index."""
-        timestamps = corpusDF.index.values
+        timestamps = corpusDF[settings['dateFieldName']].values
         if 'idFieldName' in settings:
             ids = corpusDF[settings['idFieldName']].values
         if 'start_date' in settings or 'end_date' in settings:
@@ -173,7 +174,7 @@ class GensimModel(BaseModel):
         topic_distrib_df = pd.DataFrame(theta, index = ids if 'idFieldName' in settings else timestamps, columns=topics)
         if 'idFieldName' in settings and 'dateFieldName' in settings:
             topic_distrib_df.insert(0, settings['dateFieldName'], timestamps)
-        save_df(settings, self.DISTRIB_FILE, topic_distrib_df)
+        return topic_distrib_df
     
     def getTopTopicWords(self, settings, topic_distribution, theta):
         """Get top words for each topic."""
@@ -220,7 +221,7 @@ class GensimModel(BaseModel):
         return dominant_topic_counts, dominant_topic_dist
 
     def getLDAVisPreparedData(self):
-        return pyLDAvis.gensim_models.prepare(self.model, self.bow_corpus, self.dictionary)
+        return pyLDAvis.gensim.prepare(self.model, self.bow_corpus, self.dictionary)
 
 
 class LDAModel(GensimModel):
