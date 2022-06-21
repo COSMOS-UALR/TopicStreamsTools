@@ -55,6 +55,10 @@ settings:
             encoding: utf-8
 ```
 
+## Using Engagement and Network nodes
+
+Using the `framework.yml` config file will use cascading nodes starting with the basic topic streams node, and producing additional outputs based on engagement trends and network behaviors. The `filters` &rarr; `out` &rarr; `node` parameter is used to indicate that the output is expected to be passed to another node, while the `filters` &rarr; `out` &rarr; `topics` array will inform which topic(s) to keep for the next node. Note the `channel_ids` must be identical for all nodes. This method is dependant on the VT database and still experimental.
+
 ## Output
 
 You can find the result of the analysis in the Output folder, in the subfolder you specified in the 'datasetName' parameter.
