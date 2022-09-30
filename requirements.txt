@@ -106,7 +106,7 @@ preshed==3.0.6
 prometheus-client==0.13.1
 prometheus-flask-exporter==0.20.1
 prompt-toolkit==3.0.28
-protobuf==3.20.0
+protobuf==3.20.2
 psutil==5.9.0
 pure-eval==0.2.2
 pycparser==2.21
