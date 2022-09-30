@@ -10,7 +10,7 @@ covid_settings:
     numberWords: 10
     moving_average_size: 5
     reloadData: False                # Will re-read your input file and train a new model with the updated data
-    retrainModel: False              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    retrainModel: True              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     model_type: LDA
     minimumProbability: 0.00000001
     nbFigures: 5

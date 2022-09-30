@@ -11,7 +11,8 @@ See the latest changes [here](CHANGELOG.md).
 ## Quick Start
 
 To run the script with the sample dataset:
-1. Install the script's requirements - it is recommended to do so in a virtual environment with Python 3.8.
+1. Install the script's requirements - it is recommended to do so in a virtual environment with Python 3.8 (confirmed to run with 3.8.12).
+You may also need to have [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170) installed.
 ```python
     pip3 install -r requirements.txt
 ```
@@ -40,7 +41,7 @@ settings:
     nbFigures: 5
     moving_average_size: 5
     reloadData: False                # Will re-read your input file and train a new model with the updated data
-    retrainModel: False              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
+    retrainModel: True              # Will use the currently saved data and train a new model (useful to try different settings without processing the same corpus)
     minimumProbability: 0.00000001
     # topicGroups: [[2, 13, 15]]
     minimumProbability: 0.00000001
@@ -80,13 +81,13 @@ The name of the field the tool will use to create a model for analysis. Typicall
 
 ![Text Field](/images/textField.png)
 
-* **dateFieldName** (formerly idFieldName)
+* **dateFieldName**
 The name of the field the tool will use to identify each entry. This should be a date field in your dataset such as a date of publication.
 
 ![Date Field](/images/idField.png)
 
 * **model_type**
-Type of topic model to use. Options: LDA, LDA-Mallet, HDP. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics.
+Type of topic model to use. Options: LDA, LDA-Mallet, HDP, Biterm. Default is LDA (Recommended). With LDA, the model attempts to fit the corpus to the specified number of topics. HDP will attempt a best guess at the number of topics (with a maximum threshold of 150) and show  the 'numberTopics' most represented topics. Biterm is ideal for smaller texts such as tweets.
 
 * **mallet_path**
 If the topic model is LDA-Mallet, you will need to provide the path to its home directory. You can download mallet [here](http://mallet.cs.umass.edu/download.php).
