@@ -76,7 +76,7 @@ multimethod==1.8
 multiprocess==0.70.12.2
 murmurhash==1.0.6
 nbclient==0.5.13
-nbconvert==6.4.4
+nbconvert==6.5.1
 nbformat==5.2.0
 nest-asyncio==1.5.4
 networkx==2.7.1
