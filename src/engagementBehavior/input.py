@@ -11,6 +11,8 @@ def getChannelData(settings, channel_id, video_ids=None):
         df = load_df(settings, getChannelFileName(channel_id))
     except FileNotFoundError:
         df = queryChannelData(settings, channel_id, video_ids)
+    if df is None:
+        return None
     df = computeTotalValues(df)
     df = computeDailyValues(df)
     return truncateData(df)
@@ -75,6 +77,8 @@ def queryChannelData(settings, channel_id, video_ids=None):
     query = f'SELECT {",".join(columns)} FROM {table} WHERE channel_id = "{channel_id}"'
     db_connector = get_connection(settings['filters']['in']['db_settings'])
     df = fetchData(db_connector, query, table, columns, CHUNKSIZE, total=None)
+    if df.shape[0] == 0:
+        return None
     df.rename(columns={'total_videos': 'total_videos_in_db'}, inplace=True)
     video_ids, df = getVideoPublicationHistogram(db_connector, df, channel_id, video_ids)
     df = getCommentPublicationHistogram(db_connector, df, video_ids)

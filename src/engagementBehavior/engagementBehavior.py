@@ -45,7 +45,10 @@ class EngagementBehaviorNode:
             channel_ids = self.fetchChannelIDs()
             for channel_id in channel_ids:
                 data = getChannelData(settings, channel_id, video_ids)
-                combined_anomalies_list.append(self.getCombinedAnomalies(data, channel_id, anomaly_aggregation_timeframe))
+                if data:
+                    combined_anomalies_list.append(self.getCombinedAnomalies(data, channel_id, anomaly_aggregation_timeframe))
+                else:
+                    print(f'No data found for channel {channel_id}.')
             combined_dfs = pd.concat(combined_anomalies_list, axis=0)
             combined_dfs.reset_index(inplace=True, drop=True)
             combined_dfs = combined_dfs.replace(np.NaN, 0)
