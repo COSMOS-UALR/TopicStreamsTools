@@ -77,8 +77,6 @@ def queryChannelData(settings, channel_id, video_ids=None):
     query = f'SELECT {",".join(columns)} FROM {table} WHERE channel_id = "{channel_id}"'
     db_connector = get_connection(settings['filters']['in']['db_settings'])
     df = fetchData(db_connector, query, table, columns, CHUNKSIZE, total=None)
-    if df.shape[0] == 0:
-        return None
     df.rename(columns={'total_videos': 'total_videos_in_db'}, inplace=True)
     video_ids, df = getVideoPublicationHistogram(db_connector, df, channel_id, video_ids)
     df = getCommentPublicationHistogram(db_connector, df, video_ids)
@@ -86,6 +84,8 @@ def queryChannelData(settings, channel_id, video_ids=None):
     # print(f"Filtering out na values from {df.shape[0]} entries.")
     df.dropna(how='any', thresh=200, axis=1, inplace=True)
     # df.dropna(how='any', axis=0, inplace=True)
+    if df.shape[1] == 0:
+        return None
     # print(f"{df.shape[0]} entries remain.")
     save_df(settings, getChannelFileName(channel_id), df)
     return df
