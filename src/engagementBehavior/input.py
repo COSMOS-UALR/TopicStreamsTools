@@ -82,9 +82,10 @@ def queryChannelData(settings, channel_id, video_ids=None):
     df = getCommentPublicationHistogram(db_connector, df, video_ids)
     df.rename(columns={'extracted_date': 'date'}, inplace=True)
     # print(f"Filtering out na values from {df.shape[0]} entries.")
-    df.dropna(how='any', thresh=200, axis=1, inplace=True)
-    # df.dropna(how='any', axis=0, inplace=True)
-    if df.shape[1] == 0:
+    # df.dropna(thresh=200, axis=1, inplace=True) # - For larger values
+    df.dropna(how='any', axis=1, inplace=True) # - For smaller values
+    # df.dropna(how='any', axis=0, inplace=True) # - For individual rows with missing values
+    if df.shape[0] == 0:
         return None
     # print(f"{df.shape[0]} entries remain.")
     save_df(settings, getChannelFileName(channel_id), df)
