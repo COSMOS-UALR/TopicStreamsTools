@@ -64,7 +64,7 @@ kmodes==0.12.1
 lightgbm==3.3.2
 llvmlite==0.37.0
 lxml==4.9.1
-Mako==1.2.0
+Mako==1.2.2
 MarkupSafe==2.0.1
 matplotlib==3.5.1
 matplotlib-inline==0.1.3
