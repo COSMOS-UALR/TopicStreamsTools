@@ -84,7 +84,7 @@ nltk==3.7
 notebook==6.4.10
 numba==0.54.1
 numexpr==2.8.1
-numpy==1.19.5
+numpy==1.22.0
 oauthlib==3.2.0
 openpyxl==3.0.9
 p-tqdm==1.4.0
