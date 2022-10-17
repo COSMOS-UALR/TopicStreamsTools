@@ -18,9 +18,9 @@ class TopicModelNode:
     def run(self, previous_node_output):
         print(f"BEGIN {self.settings['node']}")
         model = self.getModel()
-        model.loadData()
-        model.processData()
-        model.train()
+        corpus_df = model.loadCorpus()
+        model.getData(corpus_df)
+        model.train(corpus_df)
         out = model.output()
         print(f"NODE {self.settings['node']} END")
         return out

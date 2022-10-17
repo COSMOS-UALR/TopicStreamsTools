@@ -18,20 +18,41 @@ class BaseModel:
         self.wordsDF = None
 
 
-    def loadData(self):
+    def loadCorpus(self, reload=False):
         """Will fetch raw data, either from IDs given by previous node, form disk, or by reading the source."""
+        corpus_df = None
         if 'node' in self.settings['filters']['in']:
             self.settings['verbose'] = False
             filtered_ids = []
             corpus_df = read_data(self.settings)
             filtered_ids = load_tmp(self.settings, self.IDS_FILE)
-            self.corpus_df = corpus_df[corpus_df[self.settings['idFieldName']].isin(filtered_ids)]
+            corpus_df = corpus_df[corpus_df[self.settings['idFieldName']].isin(filtered_ids)]
             print(f"Kept {corpus_df.shape[0]} items.")
-        elif self.settings['reloadData']:
+        elif self.settings['reloadData'] or reload:
             if 'channel_ids' in self.settings['filters']['in']:
-                self.corpus_df = queryChannelData(self.settings, self.settings['filters']['in']['channel_ids'])
+                corpus_df = queryChannelData(self.settings, self.settings['filters']['in']['channel_ids'])
             else:
-                self.corpus_df = read_data(self.settings)
+                corpus_df = read_data(self.settings)
+        return corpus_df
+
+
+    def getData(self, corpus_df):
+        """Will attempt to load processed file, or regenerate if they are missing or reloadData is True."""
+        settings = self.settings
+        settings['verbose'] = True
+        if not settings['reloadData']:
+            try:
+                self.loadProcessedData(settings)
+            except FileNotFoundError as e:
+                print(str(e))
+                self.settings['reloadData'] = True
+                corpus_df = self.loadCorpus(reload=True)
+        if self.settings['reloadData']:
+            self.processData(corpus_df)
+
+
+    def loadProcessedData():
+        raise NotImplementedError
 
 
     def processData():

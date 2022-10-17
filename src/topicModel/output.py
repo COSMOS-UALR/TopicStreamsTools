@@ -10,10 +10,10 @@ import pyLDAvis.gensim
 from ..dataManager import checkPathExists, getFilePath, getOutputDir
 
 
-def saveModel(settings, file, model):
+def saveModel(settings, file, model, save_func):
     file_path = getFilePath(settings, file)
     checkPathExists(file_path)
-    model.save(file_path)
+    save_func(model, file_path)
 
 
 ### Nodes ###
@@ -196,7 +196,7 @@ def saveCoherencePlot(settings, coherence_values, topics_range, coherence_measur
 
 
 def saveInteractivePage(settings, prepared_data):
-    filename = f"InteractiveLDAvis.html"
+    filename = f"{settings['model']}_InteractiveLDAvis.html"
     output_dir = getOutputDir(settings)
     path = os.path.join(output_dir, filename)
     pyLDAvis.save_html(prepared_data, path)

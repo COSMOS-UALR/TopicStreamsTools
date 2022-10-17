@@ -1,17 +1,27 @@
-from gensim import models
+from collections import defaultdict
+from gensim import models, corpora
+from nltk.corpus import stopwords
 import numpy as np
 import os
 import pandas as pd
 import pyLDAvis
 import queue, threading
+import re
+import string
 from tqdm import tqdm
 
-from ..dataManager import load_df, save_df, save_tmp
+from ..dataManager import load_df, save_df, load_tmp, save_tmp, fileExists
 from .baseModel import BaseModel
-from .input import getProcessedData, loadProcessedData, loadModel
+from .input import loadModel
 from .output import getIDsInTopics, saveCoherencePlot, saveInteractivePage, saveModel, saveFigures, saveToExcel
 
+
 DEFAULT_COHERENCE = 'c_v'
+
+STOPWORDS_FILE = 'stopwords.txt'
+BOW_FILE = 'BOW.obj'
+DICT_FILE = 'dictionary.obj'
+TOKENS_FILE = 'tokens.obj'
 
 class GensimModel(BaseModel):
 
@@ -19,25 +29,11 @@ class GensimModel(BaseModel):
         super().__init__(settings)
         self.bow_corpus = None
         self.dictionary = None
+        self.processed_corpus = None
         self.settings['coherence_measure'] = self.settings['coherence_measure'] if 'coherence_measure' in self.settings else DEFAULT_COHERENCE
-    
-
-    def processData(self):
-        """Will attempt to load processed file, or regenerate if they are missing or reloadData is True."""
-        settings = self.settings
-        settings['verbose'] = True
-        if not settings['reloadData']:
-            try:
-                self.bow_corpus, self.dictionary, self.processed_corpus = loadProcessedData(settings)
-            except FileNotFoundError as e:
-                print(str(e))
-                self.settings['reloadData'] = True
-                self.loadData()
-        if self.settings['reloadData']:
-            self.bow_corpus, self.dictionary, self.processed_corpus = getProcessedData(settings, self.corpus_df)
         
 
-    def train(self):
+    def train(self, corpus_df):
         """Will attempt to load the model and its associated data, will train and create if they cannot be found or retrainModel is True."""
         print('Attempting to load Dataframes...')
         settings = self.settings
@@ -49,13 +45,58 @@ class GensimModel(BaseModel):
             print(str(e))
             settings['retrainModel'] = True
         if settings['reloadData'] or settings['retrainModel']:
+            if corpus_df is None:
+                corpus_df = self.loadCorpus(reload=True)
             self.model = self.getModel(settings, self.bow_corpus, self.dictionary, self.processed_corpus)
             print('Calculating Dataframes...')
             topic_distribution = self.model.show_topics(num_topics=settings['numberTopics'], num_words=settings['numberWords'],formatted=False)
             theta = self.getTheta(settings, self.model, self.bow_corpus)
-            self.distributionDF = self.getThetaDF(settings, self.bow_corpus, self.corpus_df, topic_distribution, theta)
+            self.distributionDF = self.getThetaDF(settings, self.bow_corpus, corpus_df, topic_distribution, theta)
             save_df(settings, self.DISTRIB_FILE, self.distributionDF)
             self.wordsDF = self.getTopTopicWords(settings, topic_distribution, theta)
+
+
+    def loadProcessedData(self, settings):
+        """Load multiple metadata files for topic modeling."""
+        self.bow_corpus = load_tmp(settings, BOW_FILE)
+        self.processed_corpus = load_tmp(settings, TOKENS_FILE)
+        self.dictionary = load_tmp(settings, DICT_FILE)
+
+
+    def processData(self, corpus_df):
+        """Process data from given corpus df. Returns a bag of word, dictionary, and list of list of tokens."""
+        def processCorpus(raw_corpus, min_token_len=3):
+            stoplist = set(stopwords.words('english'))
+            if fileExists(STOPWORDS_FILE):
+                stoplist.update(set(line.strip() for line in open(STOPWORDS_FILE)))
+            texts = []
+            for document in tqdm(raw_corpus, desc='Normalizing corpus'):
+                lowercase_string = document.lower().replace('\n', ' ').replace('\t', ' ')
+                punc_pattern = r'[{}]'.format(string.punctuation) # Replace all punctuation with spaces. This includes punctuation that might occur inside a word.
+                no_punc_string = re.sub(punc_pattern, ' ', lowercase_string)
+                # Replace all numbers and non-word chars with spaces. (note: this may not always be a good idea depending on use case).
+                no_nums_string = re.sub(r'[\d\W_]', ' ', no_punc_string)
+                # Split tokens on spaces, trim any space, stop tokens if len() < min_token_len or if in stoplist.
+                texts.append([token.strip() for token in no_nums_string.split(' ') if
+                            len(token.strip()) >= min_token_len and token.strip() not in stoplist])
+            frequency = defaultdict(int)
+            for text in tqdm(texts, desc='Counting word frequency'):
+                for token in text:
+                    frequency[token] += 1
+            # Only keep words that appear more than once
+            return [[token for token in text if frequency[token] > 1] for text in
+                    tqdm(texts, desc='Filtering out unique tokens')]
+        raw_corpus = corpus_df[self.settings['corpusFieldName']]
+        self.processed_corpus = processCorpus(raw_corpus)
+        print("Creating dictionary. This may take a few minutes depending on the size of the corpus.")
+        self.dictionary = corpora.Dictionary(self.processed_corpus)
+        self.dictionary.filter_extremes()
+        # Convert original corpus to a bag of words/list of vectors:
+        self.bow_corpus = [self.dictionary.doc2bow(text) for text in tqdm(self.processed_corpus, desc='Vectorizing corpus')]
+        # Dump processed data to files for faster loading
+        save_tmp(self.settings, BOW_FILE, self.bow_corpus)
+        save_tmp(self.settings, TOKENS_FILE, self.processed_corpus)
+        save_tmp(self.settings, DICT_FILE, self.dictionary)
 
 
     def output(self):
@@ -82,7 +123,7 @@ class GensimModel(BaseModel):
             model = self.optimizeModel(dictionary, bow_corpus, processed_corpus)
         else:
             model = self.createModel(settings['model'], bow_corpus, dictionary, processed_corpus, self.settings['numberTopics'])
-        saveModel(settings, self.MODEL_FILE, model)
+        saveModel(settings, self.MODEL_FILE, model, lambda model, file_path: model.save(file_path))
         return model
 
 
@@ -164,7 +205,7 @@ class GensimModel(BaseModel):
 
     def getThetaDF(self, settings, bow_corpus, corpusDF, topic_distribution, theta):
         """Get topic distributions dataframe for each document, with document id or timestamped as index."""
-        timestamps = corpusDF[settings['dateFieldName']].values
+        timestamps = corpusDF.reset_index()[settings['dateFieldName']].values
         if 'idFieldName' in settings:
             ids = corpusDF[settings['idFieldName']].values
         if 'start_date' in settings or 'end_date' in settings:
