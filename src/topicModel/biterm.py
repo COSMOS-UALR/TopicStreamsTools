@@ -31,7 +31,8 @@ class BitermModel(BaseModel):
     def loadProcessedData(self, settings):
         """Load multiple metadata files for topic modeling."""
         self.docs_vec = load_tmp(settings, DOCS_VEC_FILE)
-        self.docs_to_remove = load_tmp(settings, DOCS_TO_REMOVE_FILE)
+        if self.settings['removeEmptyVecs']:
+            self.docs_to_remove = load_tmp(settings, DOCS_TO_REMOVE_FILE)
         self.vocabulary = load_tmp(settings, VOC_FILE)
         self.csr_doc_word = load_tmp(settings, CSR_DOC_FILE)
         self.biterms = load_tmp(settings, BITERMS_FILE)
@@ -52,15 +53,17 @@ class BitermModel(BaseModel):
         # Vectorizing documents
         self.vocabulary = np.array(vec.get_feature_names())
         self.docs_vec = bitermplus.get_vectorized_docs(texts, self.vocabulary)
-        # If vetorized rows become empty, purge in order for pyLDAVis to run.
-        self.docs_to_remove = [i for i, row in enumerate(self.docs_vec) if len(row) == 0]
-        self.docs_vec = np.delete(self.docs_vec, self.docs_to_remove, 0).tolist()
-        self.doc_word_matrix = np.delete(self.doc_word_matrix, self.docs_to_remove, 0).tolist()
+        # If vetorized rows become empty, they need to be purged here in order for pyLDAVis to run.
+        if settings['removeEmptyVecs']:
+            self.docs_to_remove = [i for i, row in enumerate(self.docs_vec) if len(row) == 0]
+            self.docs_vec = np.delete(self.docs_vec, self.docs_to_remove, 0).tolist()
+            self.doc_word_matrix = np.delete(self.doc_word_matrix, self.docs_to_remove, 0).tolist()
         # Generating biterms
         self.biterms = bitermplus.get_biterms(self.docs_vec)
         self.csr_doc_word = sparse.csr_matrix(self.doc_word_matrix)
         # Dump processed data to files for faster loading
-        save_tmp(settings, DOCS_TO_REMOVE_FILE, self.docs_to_remove)
+        if settings['removeEmptyVecs']:
+            save_tmp(settings, DOCS_TO_REMOVE_FILE, self.docs_to_remove)
         save_tmp(settings, DOCS_VEC_FILE, self.docs_vec)
         save_tmp(settings, VOC_FILE, self.vocabulary)
         save_tmp(settings, CSR_DOC_FILE, self.csr_doc_word)
@@ -97,7 +100,10 @@ class BitermModel(BaseModel):
 
     def getThetaDF(self, settings, corpusDF, theta):
         """Return dataframes holding topic distributions for each document, with id or timestamped index."""
-        corpusDF = corpusDF.reset_index().drop(self.docs_to_remove)#.set_index(self.settings['dateFieldName'])
+        if settings['removeEmptyVecs']:
+            corpusDF = corpusDF.reset_index().drop(self.docs_to_remove)#.set_index(self.settings['dateFieldName'])
+        else:
+            corpusDF = corpusDF.reset_index()#.set_index(self.settings['dateFieldName'])
         timestamps = corpusDF[settings['dateFieldName']].values
         if 'idFieldName' in settings:
             ids = corpusDF[settings['idFieldName']].values
@@ -131,7 +137,8 @@ class BitermModel(BaseModel):
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
             saveToExcel(settings, self.distributionDF, self.wordsDF)
             saveFigures(settings, self.distributionDF, self.wordsDF, n=nbFigures)
-            saveInteractivePage(settings, self.getLDAVisPreparedData())
+            if settings['removeEmptyVecs']:
+                saveInteractivePage(settings, self.getLDAVisPreparedData())
 
     def getLDAVisPreparedData(self):
         # tmp.report(model=self.model, docs=self.texts)

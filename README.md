@@ -176,6 +176,9 @@ Add label to the y axis.
 * **alternate_legend**
 Set to True to display plot legends on the right.
 
+* **removeEmptyVecs**
+For Biterm only, True by default. This needs to be True for PyLDAVIS to run and produce an interactive visualization. However, some documents will seemingly disappear from the topic distribution, leading to inconsistent counts, i.e., you may input 100 documents and only see 50 in the output. This happens with short texts such as tweets, where the tweet contains no semantically meaningful tokens, e.g. 'RT', single emojis, etc. If you need to account for all documents, toggle to False.
+
 
 ## Some useful references:
 
