@@ -53,7 +53,7 @@ def saveToExcel(settings, distributionDF, wordsDF):
     output_dir = getOutputDir(settings)
     output_dest = os.path.join(output_dir, fileName)
     with pd.ExcelWriter(output_dest) as writer:
-        wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
+        wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words', index_label='Topic ID')
         if 'distributionInWorksheet' in settings and settings['distributionInWorksheet']:
             usingIDs = 'idFieldName' in settings
             saveWorksheet(settings, writer, 'Topic Distribution', distributionDF, output_dir, True, settings['idFieldName'] if usingIDs else None)
