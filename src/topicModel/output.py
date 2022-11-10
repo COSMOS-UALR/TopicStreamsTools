@@ -36,7 +36,7 @@ def getEdgeListDF(settings, distributionDF):
     return df.rename(columns={"index": settings['idFieldName']})
 
 
-def saveWorksheet(settings, writer, worksheet, df, dir, write_index):
+def saveWorksheet(settings, writer, worksheet, df, dir, write_index, index_label=None):
     # Write to CSV if data is too large. Max excel sheet size is: 1048576, 16384
     if df.shape[0] > 1048576:
         fileName = f"{settings['model']}_{worksheet}_{settings['datasetName']}.csv"
@@ -44,7 +44,7 @@ def saveWorksheet(settings, writer, worksheet, df, dir, write_index):
         df.to_csv(path, index=write_index, header=True)
         print(f"The {worksheet} data was too large to write as an Excel worksheet and was written to {path} instead.")
     else:
-        df.to_excel(writer, index=write_index, header=True, sheet_name=worksheet)
+        df.to_excel(writer, index=write_index, index_label=index_label, header=True, sheet_name=worksheet)
 
 
 def saveToExcel(settings, distributionDF, wordsDF):
@@ -55,8 +55,9 @@ def saveToExcel(settings, distributionDF, wordsDF):
     with pd.ExcelWriter(output_dest) as writer:
         wordsDF.to_excel(writer, index=True, header=True, sheet_name='Topic Words')
         if 'distributionInWorksheet' in settings and settings['distributionInWorksheet']:
-            saveWorksheet(settings, writer, 'Topic Distribution', distributionDF, output_dir, True)
-            if 'idFieldName' in settings:
+            usingIDs = 'idFieldName' in settings
+            saveWorksheet(settings, writer, 'Topic Distribution', distributionDF, output_dir, True, settings['idFieldName'] if usingIDs else None)
+            if usingIDs:
                 edgeListDF = getEdgeListDF(settings, distributionDF)
                 saveWorksheet(settings, writer, 'Edge List', edgeListDF, output_dir, False)
     print(f"Wrote topic distribution data to {output_dest}.")
