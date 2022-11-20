@@ -106,7 +106,10 @@ class GensimModel(BaseModel):
         if 'folder' in settings['filters']['out']:
             nbFigures = settings['filters']['out']['nbFigures']
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
-            saveToExcel(settings, self.distributionDF, self.wordsDF)
+            if 'idFieldName' in settings:
+                saveToExcel(settings, self.distributionDF[~self.distributionDF.index.duplicated(keep='first')], self.wordsDF)
+            else:
+                saveToExcel(settings, self.distributionDF, self.wordsDF)
             saveFigures(settings, self.distributionDF, self.wordsDF, n=nbFigures)
             saveInteractivePage(settings, self.getLDAVisPreparedData())
         if 'node' in settings['filters']['out']:

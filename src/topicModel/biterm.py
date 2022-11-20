@@ -43,7 +43,7 @@ class BitermModel(BaseModel):
         """Process data from given corpus df."""
         settings = self.settings
         texts = corpus_df[settings['corpusFieldName']].values
-        self.texts = texts
+        # self.texts = texts
         vec = CountVectorizer(stop_words='english')
         # vec = CountVectorizer()
         self.doc_word_matrix = vec.fit_transform(texts).toarray()
@@ -135,7 +135,10 @@ class BitermModel(BaseModel):
         if 'folder' in settings['filters']['out']:
             nbFigures = settings['filters']['out']['nbFigures']
             settings['moving_average_size'] = settings['filters']['out']['moving_average_size']
-            saveToExcel(settings, self.distributionDF, self.wordsDF)
+            if 'idFieldName' in settings:
+                saveToExcel(settings, self.distributionDF[~self.distributionDF.index.duplicated(keep='first')], self.wordsDF)
+            else:
+                saveToExcel(settings, self.distributionDF, self.wordsDF)
             saveFigures(settings, self.distributionDF, self.wordsDF, n=nbFigures)
             if settings['removeEmptyVecs']:
                 saveInteractivePage(settings, self.getLDAVisPreparedData())
