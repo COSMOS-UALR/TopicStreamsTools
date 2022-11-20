@@ -24,13 +24,15 @@ def loadModel(settings, file):
     return model
 
 
-def queryChannelData(settings, channel_ids):
+def queryChannelData(settings, channel_ids = None):
     """Return video data belonging to channel(s)."""
     db_connector = get_connection(settings['filters']['in']['db_settings'])
     CHUNKSIZE = 10000
     video_table = 'videos'
     columns = ['video_id', 'published_date', 'video_title']
-    query_filter = f'FROM {video_table} WHERE channel_id IN ({",".join(quoteList(channel_ids))})'
+    query_filter = f'FROM {video_table} '
+    if channel_ids:
+        query_filter += f' WHERE channel_id IN ({",".join(quoteList(channel_ids))})'
     # query_filter += f' AND published_date >= "2019-01-01" ORDER BY published_date ASC'
     query = f'SELECT {",".join(columns)} ' + query_filter
     query_count = f'SELECT COUNT(video_id) ' + query_filter

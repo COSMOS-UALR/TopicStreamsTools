@@ -178,7 +178,7 @@ def countQueryItems(db_connector, count_query):
     return cur.fetchall()[-1][-1]
 
 
-def fetchData(db_connector, query, table_name, columns, chunksize, total):
+def fetchData(db_connector, query, table_name, columns=None, chunksize=1000, total=None):
     out_df = None
     progress = tqdm(total=total, desc=f'Collecting {table_name}...')
     chunks = pd.read_sql(query, db_connector, columns=columns, chunksize=chunksize)

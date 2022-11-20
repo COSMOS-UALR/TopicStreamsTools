@@ -1,4 +1,4 @@
-from ..dataManager import load_tmp, read_data
+from ..dataManager import load_tmp, read_data, get_connection, fetchData
 from .input import queryChannelData
 
 # Topic distribution a document must meet to belong to a topic. Used to communicate what documents to keep from one node to another if fileterd by topic.
@@ -29,8 +29,16 @@ class BaseModel:
             corpus_df = corpus_df[corpus_df[self.settings['idFieldName']].isin(filtered_ids)]
             print(f"Kept {corpus_df.shape[0]} items.")
         elif self.settings['reloadData'] or reload:
-            if 'channel_ids' in self.settings['filters']['in']:
-                corpus_df = queryChannelData(self.settings, self.settings['filters']['in']['channel_ids'])
+            if 'db_settings' in self.settings['filters']['in']:
+                channel_ids = self.settings['filters']['in']['channel_ids'] if 'channel_ids' in self.settings['filters']['in'] else None
+                if 'query' in self.settings['filters']['in']['db_settings']:
+                    db_connector = get_connection(self.settings['filters']['in']['db_settings'])
+                    CHUNKSIZE = 10000
+                    table = 'posts'
+                    query = self.settings['filters']['in']['db_settings']['query']
+                    corpus_df = fetchData(db_connector, query, table, chunksize=CHUNKSIZE)
+                else:
+                    corpus_df = queryChannelData(self.settings, channel_ids)
             else:
                 corpus_df = read_data(self.settings)
         return corpus_df
