@@ -1,5 +1,5 @@
+from datetime import datetime
 import yaml
-
 from .topicModel.topicModel import TopicModelNode
 from .engagementBehavior.engagementBehavior import EngagementBehaviorNode
 from .commenterNetwork.commenterNetwork import CommenterNetwork
@@ -25,7 +25,14 @@ class Framework:
         """Execute nodes."""
         out = {}
         for node in self.nodes:
+            node_id = node.settings['node']
+            node_type = node.settings['node_type']
+            start_time = datetime.now()
+            print(f"BEGIN {node_id} - {node_type} at {start_time}")
             out = node.run(out)
+            end_time = datetime.now()
+            delta = end_time - start_time
+            print(f"END NODE {node} at {end_time}. Took {delta.seconds/86400:.0f}d {(delta.seconds % 86400) / 3600:.0f}h {(delta.seconds % 3600) / 60:.0f}m {delta.seconds % 60}s.")
 
     def nodeFactory(self, node_type):
         """Build node for each module type."""
