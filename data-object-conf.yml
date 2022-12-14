@@ -1,0 +1,41 @@
+project: novaccineforme
+routing:
+  nodes:
+    - node_1:
+        node_type: topic_model
+        model_type: LDA
+        removeEmptyVecs: False
+        optimize_model: True
+        coherence_measure: c_v
+        # coherence_measure: u_mass
+        # numberTopics: 10
+        numberWords: 10
+        minimumProbability: 0.00000001
+        # file: YT_Comments_November_1_2020_to_March_1_2021_DE.csv
+        corpusFieldName: text
+        dateFieldName: created_at
+        idFieldName: id
+        roundToDay: false
+        reloadData: false    # Will reload input file and train a new model with the updated data
+        retrainModel: true  # Will use processed data and train a new model (useful to try different settings without processing the same corpus)
+        distributionInWorksheet: True
+        filters:
+          in:
+            db_settings:
+              user: db_mover
+              password: Cosmos1
+              host: '144.167.34.17'
+              db: twitter
+              # query: "SELECT * FROM twitter.posts WHERE source_id IN (12, 14, 15, 19, 20, 25, 26, 27) and (text LIKE '%#BillGatesVirus%' OR text LIKE '%#Nofacemask%' OR text LIKE '%#NoVaccineforMe%')"
+              # query: "SELECT * FROM twitter.posts WHERE source_id IN (12, 14, 15, 19, 20, 25, 26, 27) and (text LIKE '%#BillGatesVirus%')"
+              # query: "SELECT * FROM twitter.posts WHERE source_id IN (12, 14, 15, 19, 20, 25, 26, 27) and (text LIKE '%#Nofacemask%')"
+              query: "SELECT * FROM twitter.posts WHERE source_id IN (12, 14, 15, 19, 20, 25, 26, 27) and (text LIKE '%#NoVaccineforMe%')"
+              # user: db_exporter
+              # password: Cosmos1
+              # host: 144.167.35.221
+              # db: behaviors_on_youtube
+          out:
+            folder: data-object-covid-tweets-novaccineforme
+            nbFigures: 10
+            moving_average_size: 5
+
