@@ -162,7 +162,7 @@ def quoteList(str_list):
 
 def get_query(db_settings):
     query = ""
-    filePath = os.path.join(os.getcwd(), db_settings['query'])
+    filePath = os.path.join(os.getcwd(), 'Data', db_settings['query'])
     if os.path.isfile(filePath):
         with open(filePath, 'r', encoding='utf-8') as f:
             query = f.read().strip('/r/n')

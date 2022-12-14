@@ -1,4 +1,4 @@
-from ..dataManager import load_tmp, read_data, get_connection, fetchData
+from ..dataManager import load_tmp, read_data, get_connection, fetchData, get_query
 from .input import queryChannelData
 
 # Topic distribution a document must meet to belong to a topic. Used to communicate what documents to keep from one node to another if fileterd by topic.
@@ -35,7 +35,7 @@ class BaseModel:
                     db_connector = get_connection(self.settings['filters']['in']['db_settings'])
                     CHUNKSIZE = 10000
                     table = 'posts'
-                    query = self.settings['filters']['in']['db_settings']['query']
+                    query = get_query(self.settings['filters']['in']['db_settings'])
                     corpus_df = fetchData(db_connector, query, table, chunksize=CHUNKSIZE)
                 else:
                     corpus_df = queryChannelData(self.settings, channel_ids)
